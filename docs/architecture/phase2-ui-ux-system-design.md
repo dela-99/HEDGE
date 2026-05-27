@@ -31,7 +31,7 @@
 - Failed/Fraud: #DC2626
 
 ### Design Tokens
-- Radius: sm(6px), md(10px), lg(16px)
+- Radius: sm (6px), md (10px), lg (16px)
 - Shadows: sm, md
 - Transitions: fast(150ms), base(250ms)
 
@@ -86,7 +86,7 @@
 ## 5. UX Priorities
 
 **Dashboard:**
-- Top: Revenue cards + Pending + Failed + Fraud Alerts (visible <3s)
+- Top: Revenue cards + Pending + Failed + Fraud Alerts (visible within 3s)
 - Middle: Revenue trend graph
 - Bottom: Recent transactions + Reconciliation status
 
@@ -106,7 +106,7 @@
 - Dashboard render < 1s
 
 ## 6. Accessibility & Observability
-- WCAG minimum (contrast, keyboard nav, screen reader)
+- WCAG 2.1 AA minimum (contrast, keyboard nav, screen reader)
 - Error tracking + logging hooks ready
 
 ## 7. Integration with Phase 1
