@@ -86,7 +86,7 @@
 ## 5. UX Priorities
 
 **Dashboard:**
-- Top: Revenue cards + Pending + Failed + Fraud Alerts (visible within 3s)
+- Top: Revenue cards + Pending + Failed + Fraud Alerts (visible within 2s)
 - Middle: Revenue trend graph
 - Bottom: Recent transactions + Reconciliation status
 
@@ -106,7 +106,7 @@
 - Dashboard render < 1s
 
 ## 6. Accessibility & Observability
-- WCAG 2.1 AA minimum (contrast, keyboard nav, screen reader)
+- WCAG 2.2 AA minimum (contrast, keyboard nav, screen reader)
 - Error tracking + logging hooks ready
 
 ## 7. Integration with Phase 1
