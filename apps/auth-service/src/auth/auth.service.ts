@@ -47,7 +47,7 @@ export class AuthService {
     return isValid ? user : null;
   }
 
-  async login(user: User, context: RequestContext) {
+  async login(user: Pick<User, 'id' | 'email' | 'role'>, context: RequestContext) {
     return this.issueTokens(user, context, 'auth.login');
   }
 
@@ -104,7 +104,7 @@ export class AuthService {
     return { success: true };
   }
 
-  private async issueTokens(user: User, context: RequestContext, action: string) {
+  private async issueTokens(user: Pick<User, 'id' | 'email' | 'role'>, context: RequestContext, action: string) {
     const session = await this.sessionsService.createSession({
       userId: user.id,
       expiresAt: this.refreshExpiry(),
@@ -130,7 +130,7 @@ export class AuthService {
     };
   }
 
-  private async signTokens(user: User, sessionId: string) {
+  private async signTokens(user: Pick<User, 'id' | 'email' | 'role'>, sessionId: string) {
     const payload: TokenPayload = {
       sub: user.id,
       email: user.email,
@@ -158,8 +158,8 @@ export class AuthService {
     return new Date(Date.now() + durationToMs(this.configService.getOrThrow<string>('jwt.refreshTtl')));
   }
 
-  private publicUser(user: User) {
-    const { passwordHash: _passwordHash, ...safeUser } = user;
+  private publicUser(user: object) {
+    const { passwordHash: _passwordHash, ...safeUser } = user as { passwordHash?: unknown } & Record<string, unknown>;
     return safeUser;
   }
 }

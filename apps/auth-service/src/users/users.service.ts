@@ -47,7 +47,7 @@ export class UsersService {
   }
 
   private publicUser(user: User) {
-    const { passwordHash: _passwordHash, ...safeUser } = user;
+    const { passwordHash, ...safeUser } = user;
     return safeUser;
   }
 }
