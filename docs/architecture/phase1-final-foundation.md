@@ -15,7 +15,7 @@ Customer Pays → Provider Webhook → Signature Validation → Raw Event Stored
 Transaction Received → Matching Engine → Mismatch Detected → Flagged → Alert Generated → Merchant Reviews → Manual Resolution/Retry → Audit Log Updated
 
 ### Flow 4 — Fraud Alert Flow
-Suspicious Pattern Detected → Fraud Rule Triggered → Risk Score Assigned → Alert Created → Merchant Notified → Admin Review (future)
+Suspicious Pattern Detected → Fraud Rule Triggered → Risk Score Assigned → Alert Created → Merchant Notified → Merchant Fraud History Updated → Admin Review (future)
 
 ## 2. MASTER SYSTEM ARCHITECTURE DIAGRAM
 
@@ -84,8 +84,8 @@ Validation: Class-validator DTOs, whitelist, reject unknown fields.
 
 ## 4. OBSERVABILITY BASELINE
 
-Logging: Auth failures, webhook failures, reconciliation failures, notification delivery, suspicious activity.
+Logging: Auth failures, webhook failures, reconciliation failures, notification delivery, fraud rule triggers, risk score assignments, suspicious activity.
 
-Metrics: API latency, failed webhooks, queue failures, DB query times.
+Metrics: API latency, failed webhooks, queue failures, DB query times, reconciliation match/mismatch rates, resolution times, fraud alert volume.
 
 Future Ready: Sentry + OpenTelemetry hooks in code structure.
