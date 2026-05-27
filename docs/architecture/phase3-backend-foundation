@@ -1,0 +1,108 @@
+# PHASE 3 — BACKEND FOUNDATION
+**Hedge Fintech App**  
+**Status:** Locked  
+**Built on:** Phase 1 + Phase 2
+
+## 1. Auth System (Priority #1)
+
+**Security Flow:**
+Login → Credential Validation → Argon2id Verify → JWT Access Token (15min) → Refresh Token (7-30 days, hashed + device-bound) → Session Stored → Audit Log
+
+**Stack:** NestJS + Passport + JWT + Argon2id + Redis + PostgreSQL (Prisma)
+
+**RBAC Roles:** merchant_owner, manager, accountant, support_staff, admin
+
+**Session Features:** Device tracking (IP, device_info, timestamps), logout current/all devices, revoke compromised sessions
+
+## 2. Database Foundation
+
+**Database:** PostgreSQL  
+**ORM:** Prisma
+
+**Rules:**
+- UUIDs everywhere
+- created_at + updated_at on all tables
+- Strong constraints (unique emails, provider_txn_id)
+- Proper foreign keys + enum restrictions
+- Immutable: raw webhook payloads, audit logs
+
+**Indexing Strategy:**
+- users: email, role
+- transactions: merchant_id, provider_txn_id, status, created_at
+- reconciliation_records: status, checked_at
+
+**Migration Strategy:** One migration per feature, never modify old ones, rollback-safe
+
+## 3. Security Foundation
+
+**Stack:**
+- Helmet (secure headers)
+- CORS (whitelist frontend only)
+- Rate Limiting (login, signup, refresh, webhooks)
+- DTO Validation (class-validator, whitelist, reject unknown fields)
+- Guards: JWT + Roles
+
+**Secret Management:** .env locally → Secrets Manager later
+
+**Encryption:** Provider credentials + sensitive fields
+
+**Webhook Security:** Signature validation, timestamp check, idempotency, replay prevention
+
+## 4. Audit Logging
+
+**Purpose:** Compliance, fraud analysis, investigations
+
+**Audit Table:**
+- id, actor_id, action, resource_type, resource_id, ip_address, device_info, metadata, created_at
+
+**Tracked Events:** signup, login/logout, failed attempts, password changes, account linking, transactions, reconciliation, admin actions
+
+**Rules:** Immutable, indexed for search (actor, action, timestamp)
+
+## 5. Queue System
+
+**Stack:** Redis + BullMQ
+
+**Queues:**
+- notifications-queue (email, SMS, push)
+- reconciliation-queue (matching, settlements)
+- fraud-queue (checks, risk scoring)
+- analytics-queue (aggregations)
+
+**Rules:** Retry-safe, idempotent, dead-letter handling
+
+## 6. Observability
+
+**Logging:** Auth failures, webhook failures, queue failures, DB errors, reconciliation issues
+
+**Metrics:** API latency, webhook latency, queue processing time, failed jobs
+
+**Future:** Sentry + OpenTelemetry
+
+## 7. Transaction Ingestion & Reconciliation (Core Engine)
+
+**MTN MoMo Pipeline (Sandbox First):**
+Webhook → Signature + Timestamp Validation → Store Raw Event (immutable) → Idempotency Check → Normalization → Fraud Checks → Transaction Create → Reconciliation Queue → Notifications → Analytics
+
+**Normalization Layer:** Convert all providers to unified format
+
+**Reconciliation States:** matched, pending, duplicate, mismatched, reversed, partial_settlement
+
+**Analytics Pipeline:** Transactions → Aggregation Jobs → Snapshots → Dashboard Metrics
+
+## 8. Overall Backend Principles
+
+✅ Modular  
+✅ Auditable  
+✅ Observable  
+✅ Secure by default  
+✅ Event-driven + Queue-backed  
+✅ Retry-safe  
+✅ API-first  
+✅ Scalable
+
+**Phase 3 Status:** Backend foundation locked. Trust, auditability, and financial event integrity established.
+
+---
+
+Doc saved.  
