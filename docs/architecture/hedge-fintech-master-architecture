@@ -1,0 +1,40 @@
+# HEDGE FINTECH — MASTER ARCHITECTURE DOCUMENT
+**Version:** 1.0  
+**Owner:** Ridge Dela  
+**Status:** Foundation + MVP Design Locked  
+**Last Updated:** May 2026
+
+## 1. Product Vision
+Hedge is a secure, operational-first fintech platform for African SMEs and merchants. It handles payment ingestion (MTN MoMo, Telecel, Banks), reconciliation, notifications, and analytics with strong security and auditability.
+
+**Core Promise:** Trustworthy money movement with operational clarity on low-end devices.
+
+## 2. High-Level Architecture
+
+```mermaid
+flowchart TD
+    A[Mobile/Web Frontend - Next.js] --> B[API Gateway - NestJS]
+    B --> C[Auth Module]
+    B --> D[Merchant Module]
+    B --> E[Transaction Module]
+    B --> F[Reconciliation Engine]
+    B --> G[Notification Module]
+    B --> H[Analytics Module]
+    
+    C & D & E & F & G & H --> I[(PostgreSQL)]
+    E --> J[Redis + BullMQ Queues]
+    F --> J
+    G --> J
+    H --> J
+    
+    subgraph Security Layer
+        C
+        K[Rate Limiting + Webhook Validation + Encryption]
+        L[Audit Logging]
+    end
+    
+    subgraph External
+        M[MTN MoMo Webhooks]
+        N[Future Providers]
+    end
+    M --> B
