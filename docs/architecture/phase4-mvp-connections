@@ -1,0 +1,108 @@
+# PHASE 4 — MVP CONNECTIONS
+**Hedge Fintech App**  
+**Status:** Locked  
+**Built on:** Phase 1 + 2 + 3
+
+## 1. Real Event Layer Overview
+This phase activates live money movement:
+- Real payments ingestion
+- Failure handling
+- Reconciliation states
+- Operational intelligence
+
+Focus: Sandbox-first with MTN MoMo, then expand.
+
+## 2. MTN MoMo Integration (Sandbox First)
+
+**Core Flow:**
+MTN Event → Webhook Received → Signature Validation → Timestamp Validation → Raw Payload Stored (immutable) → Idempotency Check → Normalization → Transaction Created → Fraud Checks → Reconciliation Queue → Notifications → Analytics Update
+
+**Security Rules:**
+- Never trust incoming payloads
+- Always verify signatures
+- Store raw events immutably
+- Prevent replay attacks
+- Idempotency protection
+
+## 3. Transaction Ingestion Pipeline
+
+**Locked Sequence:**
+1. Receive webhook
+2. Validate authenticity + schema
+3. Store raw event
+4. Normalize payload
+5. Create unified transaction
+6. Run fraud checks
+7. Push to reconciliation queue
+8. Trigger notifications
+9. Update analytics
+
+## 4. Normalization Layer
+
+**Purpose:** Convert all provider payloads into one unified transaction format.
+
+**Benefits:**
+- Prevents provider-specific chaos
+- Consistent analytics
+- Stable reconciliation
+- Easy future provider additions
+
+## 5. Reconciliation Engine (Core Moat)
+
+**States:**
+- matched
+- pending
+- duplicate
+- mismatched
+- reversed
+- partial_settlement
+
+**Capabilities:**
+- Handle duplicates
+- Delayed settlements
+- Amount mismatches
+- Reversals
+- Partial settlements
+
+**Rules:**
+- Async processing only
+- Retry-safe
+- Immutable history
+
+## 6. Analytics Engine
+
+**Key Metrics:**
+- Revenue (daily, weekly, monthly)
+- Failed transaction rates + provider reliability
+- Settlement delays (pending duration, average time)
+- Fraud indicators (suspicious count, flagged trends)
+
+**Pipeline:**
+Transactions → Aggregation Jobs (queues) → Analytics Snapshots → Dashboard Metrics → Reports
+
+## 7. Final Architecture Principles
+
+✅ Modular  
+✅ Auditable  
+✅ Observable  
+✅ Secure by default  
+✅ Event-driven + Queue-backed  
+✅ API-first  
+✅ Retry-safe  
+✅ Scalable  
+
+**Avoid:**
+❌ Feature bloat  
+❌ Premature microservices  
+❌ Overengineering  
+❌ Tight coupling  
+❌ Synchronous heavy ops  
+❌ Hidden system states
+
+**Phase 4 Status:** Real event layer + provider connections locked. System now ready to handle live financial flows.
+
+---
+
+Doc saved.  
+
+All current phases (1-4) are compiled cleanly.  
