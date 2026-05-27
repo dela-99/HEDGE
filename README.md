@@ -1,30 +1,16 @@
 # HEDGE
 
-HEDGE is a fintech application monorepo organized so code stays with each service and shared documentation stays under `/docs`.
+HEDGE is a fintech monorepo organized around a secure auth service, shared packages, and service-specific documentation.
 
-## Repository layout
+## Layout
 
-```text
-HEDGE/
-├── apps/
-│   ├── auth-service/
-│   ├── mobile-app/
-│   ├── payment-service/
-│   └── user-service/
-├── packages/
-├── infrastructure/
-├── docs/
-│   ├── architecture/
-│   ├── compliance/
-│   ├── decision-records/
-│   ├── diagrams/
-│   └── onboarding.md
-├── scripts/
-├── .github/
-├── .gitlab/
-├── CONTRIBUTING.md
-├── SECURITY.md
-└── README.md
-```
+- `apps/auth-service` — NestJS authentication and identity service
+- `apps/user-service` — user profile and account services
+- `apps/payment-service` — payment processing surface
+- `apps/mobile-app` — mobile client
+- `packages` — shared types, config, logging, security, and utilities
+- `infrastructure` — deployment and platform assets
+- `docs` — architecture, security, onboarding, and compliance docs
+- `scripts` — repository automation helpers
 
-Start with `/docs` to understand the system design, architecture decisions, and onboarding guidance.
+Start with `docs/architecture/overall-design.md` and `docs/architecture/auth-system.md` before changing auth flows.
