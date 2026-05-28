@@ -12,6 +12,7 @@ fintech-secure-app is a professional fintech monorepo for secure application del
 - `packages/` — shared libraries, configs, and utilities
 - `docs/` — architecture, security, onboarding, and compliance documentation
 - `infrastructure/` — deployment, runtime, and platform assets
+- `scripts/` — repository automation helpers
 
 ## Getting Started
 
