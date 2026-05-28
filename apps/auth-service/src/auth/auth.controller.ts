@@ -11,6 +11,7 @@ import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { AuthTokenPayload } from './auth.types';
+import { extractRefreshToken } from './utils/refresh-token.util';
 
 type RequestWithUser = Request & { user: User | AuthTokenPayload };
 
@@ -38,7 +39,7 @@ export class AuthController {
   @Throttle({ default: { limit: 20, ttl: 60_000 } })
   @Post('refresh')
   refresh(@Req() request: RequestWithUser, @Body() dto: RefreshTokenDto) {
-    const refreshToken = dto.refreshToken ?? request.cookies?.refreshToken;
+    const refreshToken = extractRefreshToken(request) ?? dto.refreshToken;
 
     if (!refreshToken || typeof refreshToken !== 'string') {
       throw new UnauthorizedException('Refresh token is required');

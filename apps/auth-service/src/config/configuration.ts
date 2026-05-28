@@ -61,13 +61,16 @@ function parseCorsOrigins(env: NodeJS.ProcessEnv) {
     .map((origin) => origin.trim())
     .filter(Boolean)
     .map((origin) => {
+      let parsed: URL;
+
       try {
-        const parsed = new URL(origin);
-        if (!['http:', 'https:'].includes(parsed.protocol)) {
-          throw new Error();
-        }
+        parsed = new URL(origin);
       } catch {
         throw new Error(`Invalid CORS origin "${origin}" in CORS_ORIGIN; use comma-separated http(s) origins`);
+      }
+
+      if (!['http:', 'https:'].includes(parsed.protocol)) {
+        throw new Error(`Invalid protocol in CORS origin "${origin}"; only http and https are allowed`);
       }
 
       return origin;
