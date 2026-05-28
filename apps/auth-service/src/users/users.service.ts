@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { User } from '@prisma/client';
 import * as argon2 from 'argon2';
@@ -13,7 +13,7 @@ export class UsersService {
   ) {}
 
   async createUser(input: { email: string; password: string; name?: string }) {
-    const email = input.email.toLowerCase();
+    const email = this.normalizeEmail(input.email);
     const existingUser = await this.prisma.user.findUnique({ where: { email } });
     if (existingUser) {
       throw new ConflictException('Email already exists');
@@ -32,7 +32,7 @@ export class UsersService {
   }
 
   async findByEmailWithPassword(email: string) {
-    return this.prisma.user.findUnique({ where: { email: email.toLowerCase() } });
+    return this.prisma.user.findUnique({ where: { email: this.normalizeEmail(email) } });
   }
 
   async findById(userId: string) {
@@ -44,26 +44,35 @@ export class UsersService {
   }
 
   async updateProfile(userId: string, input: { name?: string }) {
+    if (!Object.keys(input).length) {
+      throw new BadRequestException('At least one field must be provided');
+    }
+
     const currentUser = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!currentUser) {
       throw new NotFoundException('User not found');
     }
 
-    if (!Object.keys(input).length) {
-      return this.publicUser(currentUser);
-    }
+    let user: User;
+    try {
+      user = await this.prisma.user.update({
+        where: { id: userId },
+        data: input,
+      });
+    } catch (error) {
+      if ((error as { code?: string }).code === 'P2025') {
+        throw new NotFoundException('User not found');
+      }
 
-    const user = await this.prisma.user.update({
-      where: { id: userId },
-      data: input,
-    });
+      throw error;
+    }
 
     await this.auditService.record({
       action: 'users.update-profile',
       userId,
       targetType: 'User',
       targetId: userId,
-      metadata: { changedFields: Object.keys(input) } satisfies Prisma.InputJsonValue,
+      metadata: { changedFields: Object.keys(input), before: { name: currentUser.name }, after: input } satisfies Prisma.InputJsonValue,
     });
 
     return this.publicUser(user);
@@ -72,5 +81,9 @@ export class UsersService {
   private publicUser(user: User) {
     const { passwordHash, ...safeUser } = user;
     return safeUser;
+  }
+
+  private normalizeEmail(email: string) {
+    return email.trim().toLowerCase();
   }
 }
