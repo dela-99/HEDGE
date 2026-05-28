@@ -61,7 +61,7 @@ export class UsersService {
   }
 
   async updateLastLogin(userId: string): Promise<void> {
-    await this.prisma.user.updateMany({
+    await this.prisma.user.update({
       where: { id: userId },
       data: { lastLoginAt: new Date() },
     });
