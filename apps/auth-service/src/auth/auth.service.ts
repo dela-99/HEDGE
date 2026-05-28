@@ -6,7 +6,6 @@ import * as argon2 from 'argon2';
 import { randomUUID } from 'node:crypto';
 import { durationToMs } from '../common/utils/duration.util';
 import { AuditService } from '../audit/audit.service';
-import { AppConfiguration } from '../config/configuration';
 import { AuthTokenPayload } from './auth.types';
 import { SessionsService } from '../sessions/sessions.service';
 import { UsersService } from '../users/users.service';
@@ -34,12 +33,16 @@ export class AuthService {
   ) {}
 
   async register(input: { email: string; password: string }, context: RequestContext) {
-    const user = await this.usersService.createUser(input);
+    const passwordHash = await argon2.hash(input.password);
+    const user = await this.usersService.createUser({
+      email: input.email,
+      passwordHash,
+    });
     return this.issueTokens(user, context, 'auth.register');
   }
 
   async validateUser(email: string, password: string) {
-    const user = await this.usersService.findByEmailWithPassword(email);
+    const user = await this.usersService.findByEmail(email);
 
     if (!user) {
       return null;
@@ -118,6 +121,10 @@ export class AuthService {
       ipAddress: context.ipAddress,
       userAgent: context.userAgent,
     });
+
+    if (action !== 'auth.refresh') {
+      await this.usersService.updateLastLogin(user.id);
+    }
 
     await this.auditService.record({
       action,

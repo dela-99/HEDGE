@@ -1,46 +1,70 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { Role, User } from '@prisma/client';
-import * as argon2 from 'argon2';
+import { ConflictException, Injectable } from '@nestjs/common';
+import { Prisma, Role } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+
+const safeUserSelect = {
+  id: true,
+  email: true,
+  role: true,
+  isVerified: true,
+  mfaEnabled: true,
+  lastLoginAt: true,
+  createdAt: true,
+  updatedAt: true,
+} satisfies Prisma.UserSelect;
+
+const userWithPasswordSelect = {
+  ...safeUserSelect,
+  passwordHash: true,
+} satisfies Prisma.UserSelect;
+
+type SafeUser = Prisma.UserGetPayload<{ select: typeof safeUserSelect }>;
+type UserWithPassword = Prisma.UserGetPayload<{ select: typeof userWithPasswordSelect }>;
 
 @Injectable()
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async createUser(input: { email: string; password: string; role?: Role }) {
+  async createUser(input: { email: string; passwordHash: string; role?: Role }): Promise<SafeUser> {
     const email = this.normalizeEmail(input.email);
-    const existingUser = await this.prisma.user.findUnique({ where: { email } });
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email },
+      select: { id: true },
+    });
+
     if (existingUser) {
       throw new ConflictException('Email already exists');
     }
 
-    const passwordHash = await argon2.hash(input.password);
-    const user = await this.prisma.user.create({
+    return this.prisma.user.create({
       data: {
         email,
-        passwordHash,
+        passwordHash: input.passwordHash,
         role: input.role ?? Role.merchant_owner,
       },
+      select: safeUserSelect,
     });
-
-    return this.publicUser(user);
   }
 
-  async findByEmailWithPassword(email: string) {
-    return this.prisma.user.findUnique({ where: { email: this.normalizeEmail(email) } });
+  async findByEmail(email: string): Promise<UserWithPassword | null> {
+    return this.prisma.user.findUnique({
+      where: { email: this.normalizeEmail(email) },
+      select: userWithPasswordSelect,
+    });
   }
 
-  async findById(userId: string) {
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-    return this.publicUser(user);
+  async findById(userId: string): Promise<SafeUser | null> {
+    return this.prisma.user.findUnique({
+      where: { id: userId },
+      select: safeUserSelect,
+    });
   }
 
-  private publicUser(user: User) {
-    const { passwordHash, ...safeUser } = user;
-    return safeUser;
+  async updateLastLogin(userId: string): Promise<void> {
+    await this.prisma.user.updateMany({
+      where: { id: userId },
+      data: { lastLoginAt: new Date() },
+    });
   }
 
   private normalizeEmail(email: string) {

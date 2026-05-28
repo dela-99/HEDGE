@@ -20,6 +20,7 @@ model User {
 
   isVerified   Boolean   @default(false)
   mfaEnabled   Boolean   @default(false)
+  lastLoginAt  DateTime?
 
   sessions     Session[]
   auditLogs    AuditLog[]
