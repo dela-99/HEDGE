@@ -1,8 +1,9 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { User, UserRole } from '@prisma/client';
+import { Role, User } from '@prisma/client';
 import * as argon2 from 'argon2';
+import { randomUUID } from 'node:crypto';
 import { durationToMs } from '../common/utils/duration.util';
 import { AuditService } from '../audit/audit.service';
 import { AppConfiguration } from '../config/configuration';
@@ -18,7 +19,7 @@ type RequestContext = {
 type TokenPayload = {
   sub: string;
   email: string;
-  role: UserRole;
+  role: Role;
   sid: string;
 };
 
@@ -32,7 +33,7 @@ export class AuthService {
     private readonly configService: ConfigService,
   ) {}
 
-  async register(input: { email: string; password: string; name?: string }, context: RequestContext) {
+  async register(input: { email: string; password: string }, context: RequestContext) {
     const user = await this.usersService.createUser(input);
     return this.issueTokens(user, context, 'auth.register');
   }
@@ -106,15 +107,17 @@ export class AuthService {
   }
 
   private async issueTokens(user: Pick<User, 'id' | 'email' | 'role'>, context: RequestContext, action: string) {
+    const sessionId = randomUUID();
+    const tokens = await this.signTokens(user, sessionId);
+    const refreshTokenHash = await argon2.hash(tokens.refreshToken);
     const session = await this.sessionsService.createSession({
+      id: sessionId,
       userId: user.id,
+      refreshTokenHash,
       expiresAt: this.refreshExpiry(),
       ipAddress: context.ipAddress,
       userAgent: context.userAgent,
     });
-
-    const tokens = await this.signTokens(user, session.id);
-    await this.sessionsService.storeRefreshToken(session.id, tokens.refreshToken, session.expiresAt);
 
     await this.auditService.record({
       action,

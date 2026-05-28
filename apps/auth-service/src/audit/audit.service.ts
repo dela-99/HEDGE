@@ -10,22 +10,19 @@ export class AuditService {
     action: string;
     userId?: string;
     sessionId?: string;
-    targetType?: string;
-    targetId?: string;
     ipAddress?: string;
     userAgent?: string | null;
     metadata?: Prisma.InputJsonValue;
   }) {
+    const metadata = input.metadata ?? (input.sessionId ? { sessionId: input.sessionId } : undefined);
+
     return this.prisma.auditLog.create({
       data: {
         action: input.action,
-        userId: input.userId,
-        sessionId: input.sessionId,
-        targetType: input.targetType,
-        targetId: input.targetId,
+        actorId: input.userId,
         ipAddress: input.ipAddress,
-        userAgent: input.userAgent ?? undefined,
-        metadata: input.metadata,
+        deviceInfo: input.userAgent ?? undefined,
+        metadata,
       },
     });
   }

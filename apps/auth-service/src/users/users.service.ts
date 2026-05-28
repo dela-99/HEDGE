@@ -1,5 +1,5 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { User } from '@prisma/client';
+import { Role, User } from '@prisma/client';
 import * as argon2 from 'argon2';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -7,7 +7,7 @@ import { PrismaService } from '../prisma/prisma.service';
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async createUser(input: { email: string; password: string; name?: string }) {
+  async createUser(input: { email: string; password: string; role?: Role }) {
     const email = this.normalizeEmail(input.email);
     const existingUser = await this.prisma.user.findUnique({ where: { email } });
     if (existingUser) {
@@ -19,7 +19,7 @@ export class UsersService {
       data: {
         email,
         passwordHash,
-        name: input.name,
+        role: input.role ?? Role.merchant_owner,
       },
     });
 
@@ -35,24 +35,6 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException('User not found');
     }
-    return this.publicUser(user);
-  }
-
-  async updateProfile(userId: string, input: { name?: string }) {
-    const currentUser = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!currentUser) {
-      throw new NotFoundException('User not found');
-    }
-
-    if (input.name === undefined) {
-      return this.publicUser(currentUser);
-    }
-
-    const user = await this.prisma.user.update({
-      where: { id: userId },
-      data: { name: input.name },
-    });
-
     return this.publicUser(user);
   }
 
