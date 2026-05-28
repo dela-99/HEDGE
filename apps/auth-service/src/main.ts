@@ -1,10 +1,11 @@
 import 'reflect-metadata';
 import { ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
-import { ConfigService } from '@nestjs/config';
+import { AppConfiguration } from './config/configuration';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
@@ -12,7 +13,7 @@ async function bootstrap() {
 
   app.use(helmet());
   app.enableCors({
-    origin: config.get<string>('app.corsOrigin') ?? true,
+    origin: config.get('app.corsOrigin') ?? true,
     credentials: true,
   });
   app.setGlobalPrefix('api');
@@ -26,7 +27,7 @@ async function bootstrap() {
   );
   app.useGlobalFilters(new AllExceptionsFilter());
 
-  const port = config.get<number>('app.port') ?? 3000;
+  const port = config.get('app.port') ?? 3000;
   await app.listen(port);
 }
 

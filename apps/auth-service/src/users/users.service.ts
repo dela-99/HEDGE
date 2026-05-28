@@ -8,7 +8,8 @@ export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
   async createUser(input: { email: string; password: string; name?: string }) {
-    const existingUser = await this.prisma.user.findUnique({ where: { email: input.email } });
+    const email = this.normalizeEmail(input.email);
+    const existingUser = await this.prisma.user.findUnique({ where: { email } });
     if (existingUser) {
       throw new ConflictException('Email already exists');
     }
@@ -16,17 +17,17 @@ export class UsersService {
     const passwordHash = await argon2.hash(input.password);
     const user = await this.prisma.user.create({
       data: {
-        email: input.email.toLowerCase(),
+        email,
         passwordHash,
         name: input.name,
       },
     });
 
-    return user;
+    return this.publicUser(user);
   }
 
   async findByEmailWithPassword(email: string) {
-    return this.prisma.user.findUnique({ where: { email: email.toLowerCase() } });
+    return this.prisma.user.findUnique({ where: { email: this.normalizeEmail(email) } });
   }
 
   async findById(userId: string) {
@@ -38,9 +39,18 @@ export class UsersService {
   }
 
   async updateProfile(userId: string, input: { name?: string }) {
+    const currentUser = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!currentUser) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (input.name === undefined) {
+      return this.publicUser(currentUser);
+    }
+
     const user = await this.prisma.user.update({
       where: { id: userId },
-      data: input,
+      data: { name: input.name },
     });
 
     return this.publicUser(user);
@@ -49,5 +59,9 @@ export class UsersService {
   private publicUser(user: User) {
     const { passwordHash, ...safeUser } = user;
     return safeUser;
+  }
+
+  private normalizeEmail(email: string) {
+    return email.trim().toLowerCase();
   }
 }

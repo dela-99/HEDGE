@@ -1,5 +1,5 @@
 {
-  "name": "hedge",
+  "name": "fintech-secure-app",
   "private": true,
   "workspaces": ["apps/*", "packages/*"],
   "scripts": {
