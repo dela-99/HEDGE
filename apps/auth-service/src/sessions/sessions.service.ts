@@ -12,17 +12,21 @@ export class SessionsService {
   ) {}
 
   async createSession(input: {
+    id: string;
     userId: string;
+    refreshTokenHash: string;
     expiresAt: Date;
     ipAddress?: string;
     userAgent?: string | null;
   }) {
     const session = await this.prisma.session.create({
       data: {
+        id: input.id,
         userId: input.userId,
+        refreshTokenHash: input.refreshTokenHash,
         expiresAt: input.expiresAt,
         ipAddress: input.ipAddress,
-        userAgent: input.userAgent ?? undefined,
+        deviceInfo: input.userAgent ?? undefined,
       },
     });
 
@@ -30,22 +34,10 @@ export class SessionsService {
     return session;
   }
 
-  async storeRefreshToken(sessionId: string, refreshToken: string, expiresAt: Date) {
-    const refreshTokenHash = await argon2.hash(refreshToken);
-    return this.prisma.session.update({
-      where: { id: sessionId },
-      data: {
-        refreshTokenHash,
-        lastSeenAt: new Date(),
-        expiresAt,
-      },
-    });
-  }
-
   async assertActiveSession(sessionId: string, userId: string) {
     const session = await this.prisma.session.findUnique({ where: { id: sessionId } });
 
-    if (!session || session.userId !== userId || session.revokedAt || session.expiresAt.getTime() <= Date.now()) {
+    if (!session || session.userId !== userId || session.revoked || session.expiresAt.getTime() <= Date.now()) {
       throw new UnauthorizedException('Session is not active');
     }
 
@@ -58,8 +50,6 @@ export class SessionsService {
       where: { id: sessionId },
       data: {
         refreshTokenHash,
-        rotatedAt: new Date(),
-        lastSeenAt: new Date(),
         expiresAt,
       },
     });
@@ -68,7 +58,7 @@ export class SessionsService {
   async revokeSession(sessionId: string) {
     await this.prisma.session.update({
       where: { id: sessionId },
-      data: { revokedAt: new Date() },
+      data: { revoked: true },
     });
     await this.redis.del(this.cacheKey(sessionId));
   }
