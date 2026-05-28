@@ -1,26 +1,18 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { Role, User } from '@prisma/client';
+import { User } from '@prisma/client';
 import * as argon2 from 'argon2';
 import { randomUUID } from 'node:crypto';
 import { durationToMs } from '../common/utils/duration.util';
 import { AuditService } from '../audit/audit.service';
-import { AppConfiguration } from '../config/configuration';
 import { AuthTokenPayload } from './auth.types';
 import { SessionsService } from '../sessions/sessions.service';
 import { UsersService } from '../users/users.service';
 
 type RequestContext = {
   ipAddress: string | undefined;
-  userAgent: string | null;
-};
-
-type TokenPayload = {
-  sub: string;
-  email: string;
-  role: Role;
-  sid: string;
+  deviceInfo: string | null;
 };
 
 @Injectable()
@@ -34,12 +26,16 @@ export class AuthService {
   ) {}
 
   async register(input: { email: string; password: string }, context: RequestContext) {
-    const user = await this.usersService.createUser(input);
-    return this.issueTokens(user, context, 'auth.register');
+    const passwordHash = await argon2.hash(input.password);
+    const user = await this.usersService.createUser({
+      email: input.email,
+      passwordHash,
+    });
+    return this.issueTokens(user, context, 'signup');
   }
 
   async validateUser(email: string, password: string) {
-    const user = await this.usersService.findByEmailWithPassword(email);
+    const user = await this.usersService.findByEmail(email);
 
     if (!user) {
       return null;
@@ -50,39 +46,35 @@ export class AuthService {
   }
 
   async login(user: Pick<User, 'id' | 'email' | 'role'>, context: RequestContext) {
-    return this.issueTokens(user, context, 'auth.login');
+    return this.issueTokens(user, context, 'login');
   }
 
   async refreshTokens(payload: AuthTokenPayload, refreshToken: string, context: RequestContext) {
-    const userId = payload.sub;
-    const sessionId = payload.sid;
-    const session = await this.sessionsService.assertActiveSession(sessionId, userId);
+    const session = await this.sessionsService.findSessionByRefreshToken(payload.sub, refreshToken);
 
-    if (!session.refreshTokenHash) {
-      throw new UnauthorizedException('Session is not initialized');
+    if (!session || session.expiresAt.getTime() <= Date.now()) {
+      throw new UnauthorizedException('Session is not active');
     }
 
-    const matches = await argon2.verify(session.refreshTokenHash, refreshToken);
-
-    if (!matches) {
-      await this.sessionsService.revokeSession(session.id);
-      throw new UnauthorizedException('Refresh token mismatch');
-    }
-
-    const user = await this.usersService.findById(userId);
+    const user = await this.usersService.findById(payload.sub);
     if (!user) {
       throw new UnauthorizedException('User no longer exists');
     }
 
-    const tokens = await this.signTokens(user, session.id);
-    await this.sessionsService.rotateRefreshToken(session.id, tokens.refreshToken, this.refreshExpiry());
-
-    await this.auditService.record({
-      action: 'auth.refresh',
-      userId: user.id,
-      sessionId: session.id,
+    const tokens = await this.signTokens(user);
+    const refreshTokenHash = await argon2.hash(tokens.refreshToken);
+    await this.sessionsService.updateSessionActivity(session.id, {
+      refreshTokenHash,
+      lastActiveAt: new Date(),
       ipAddress: context.ipAddress,
-      userAgent: context.userAgent,
+      deviceInfo: context.deviceInfo,
+    });
+
+    await this.auditService.logRefresh({
+      actorId: user.id,
+      ipAddress: context.ipAddress,
+      deviceInfo: context.deviceInfo,
+      metadata: { sessionId: session.id },
     });
 
     return {
@@ -92,23 +84,42 @@ export class AuthService {
     };
   }
 
-  async logout(payload: AuthTokenPayload) {
-    const sessionId = payload.sid;
-    const userId = payload.sub;
-    await this.sessionsService.revokeSession(sessionId);
+  async logout(payload: AuthTokenPayload, context: RequestContext, refreshToken?: string) {
+    const session = refreshToken
+      ? await this.sessionsService.findSessionByRefreshToken(payload.sub, refreshToken)
+      : null;
 
-    await this.auditService.record({
-      action: 'auth.logout',
-      userId,
-      sessionId,
+    const revokedSessions = session
+      ? 1
+      : await this.sessionsService.revokeAllUserSessions(payload.sub);
+
+    if (session) {
+      await this.sessionsService.revokeSession(session.id);
+    }
+
+    await this.auditService.logLogout({
+      actorId: payload.sub,
+      ipAddress: context.ipAddress,
+      deviceInfo: context.deviceInfo,
+      metadata: session ? { sessionId: session.id } : { revokedSessions },
     });
 
     return { success: true };
   }
 
-  private async issueTokens(user: Pick<User, 'id' | 'email' | 'role'>, context: RequestContext, action: string) {
+  async currentUser(userId: string) {
+    const user = await this.usersService.findById(userId);
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    return user;
+  }
+
+  private async issueTokens(user: Pick<User, 'id' | 'email' | 'role'>, context: RequestContext, action: 'signup' | 'login') {
     const sessionId = randomUUID();
-    const tokens = await this.signTokens(user, sessionId);
+    const tokens = await this.signTokens(user);
     const refreshTokenHash = await argon2.hash(tokens.refreshToken);
     const session = await this.sessionsService.createSession({
       id: sessionId,
@@ -116,16 +127,26 @@ export class AuthService {
       refreshTokenHash,
       expiresAt: this.refreshExpiry(),
       ipAddress: context.ipAddress,
-      userAgent: context.userAgent,
+      deviceInfo: context.deviceInfo,
     });
 
-    await this.auditService.record({
-      action,
-      userId: user.id,
-      sessionId: session.id,
-      ipAddress: context.ipAddress,
-      userAgent: context.userAgent,
-    });
+    await this.usersService.updateLastLogin(user.id);
+
+    if (action === 'signup') {
+      await this.auditService.logSignup({
+        actorId: user.id,
+        ipAddress: context.ipAddress,
+        deviceInfo: context.deviceInfo,
+        metadata: { sessionId: session.id },
+      });
+    } else {
+      await this.auditService.logLogin({
+        actorId: user.id,
+        ipAddress: context.ipAddress,
+        deviceInfo: context.deviceInfo,
+        metadata: { sessionId: session.id },
+      });
+    }
 
     return {
       user: this.publicUser(user),
@@ -134,12 +155,11 @@ export class AuthService {
     };
   }
 
-  private async signTokens(user: Pick<User, 'id' | 'email' | 'role'>, sessionId: string) {
-    const payload: TokenPayload = {
+  private async signTokens(user: Pick<User, 'id' | 'email' | 'role'>) {
+    const payload: AuthTokenPayload = {
       sub: user.id,
       email: user.email,
       role: user.role,
-      sid: sessionId,
     };
 
     const accessToken = await this.jwtService.signAsync(payload, {
@@ -147,13 +167,10 @@ export class AuthService {
       expiresIn: this.configService.getOrThrow('jwt.accessExpiresIn'),
     });
 
-    const refreshToken = await this.jwtService.signAsync(
-      { ...payload, tokenType: 'refresh' },
-      {
-        secret: this.configService.getOrThrow('jwt.refreshSecret'),
-        expiresIn: this.configService.getOrThrow('jwt.refreshExpiresIn'),
-      },
-    );
+    const refreshToken = await this.jwtService.signAsync(payload, {
+      secret: this.configService.getOrThrow('jwt.refreshSecret'),
+      expiresIn: this.configService.getOrThrow('jwt.refreshExpiresIn'),
+    });
 
     return { accessToken, refreshToken };
   }

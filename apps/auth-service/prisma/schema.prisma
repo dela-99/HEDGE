@@ -20,6 +20,7 @@ model User {
 
   isVerified   Boolean   @default(false)
   mfaEnabled   Boolean   @default(false)
+  lastLoginAt  DateTime?
 
   sessions     Session[]
   auditLogs    AuditLog[]
@@ -38,6 +39,7 @@ model Session {
 
   ipAddress         String?
   deviceInfo        String?
+  lastActiveAt      DateTime  @default(now())
 
   revoked           Boolean   @default(false)
 

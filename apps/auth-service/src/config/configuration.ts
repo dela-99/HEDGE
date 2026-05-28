@@ -1,7 +1,7 @@
 export interface AppConfiguration {
   app: {
     port: number;
-    corsOrigin?: string;
+    corsOrigins: string[];
     nodeEnv: string;
   };
   database: {
@@ -49,11 +49,39 @@ function requireDuration(env: NodeJS.ProcessEnv, key: string) {
   return value;
 }
 
+function parseCorsOrigins(env: NodeJS.ProcessEnv) {
+  const value = env.CORS_ORIGIN?.trim();
+
+  if (!value) {
+    return [];
+  }
+
+  return value
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean)
+    .map((origin) => {
+      let parsed: URL;
+
+      try {
+        parsed = new URL(origin);
+      } catch {
+        throw new Error(`Invalid CORS origin "${origin}" in CORS_ORIGIN; use comma-separated http(s) origins`);
+      }
+
+      if (!['http:', 'https:'].includes(parsed.protocol)) {
+        throw new Error(`Invalid protocol in CORS origin "${origin}"; only http and https are allowed`);
+      }
+
+      return origin;
+    });
+}
+
 export function createConfiguration(env: NodeJS.ProcessEnv = process.env): AppConfiguration {
   return {
     app: {
       port: requirePort(env),
-      corsOrigin: env.CORS_ORIGIN?.trim() || undefined,
+      corsOrigins: parseCorsOrigins(env),
       nodeEnv: env.NODE_ENV?.trim() || 'development',
     },
     database: {

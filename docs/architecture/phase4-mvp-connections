@@ -15,7 +15,21 @@ Focus: Sandbox-first with MTN MoMo, then expand.
 ## 2. MTN MoMo Integration (Sandbox First)
 
 **Core Flow:**
-MTN Event → Webhook Received → Signature Validation → Timestamp Validation → Raw Payload Stored (immutable) → Idempotency Check → Normalization → Transaction Created → Fraud Checks → Reconciliation Queue → Notifications → Analytics Update
+1. MTN Event
+2. Webhook Received
+3. Signature Validation
+4. Timestamp Validation
+5. Raw Payload Stored (immutable)
+6. Idempotency Check
+7. Normalization
+8. Transaction Created
+9. Fraud Checks
+10. Reconciliation Queue
+11. Notifications
+12. Analytics Update
+13. Audit Log
+14. Dashboard Snapshot
+15. Processing Complete
 
 **Security Rules:**
 - Never trust incoming payloads
@@ -36,6 +50,10 @@ MTN Event → Webhook Received → Signature Validation → Timestamp Validation
 7. Push to reconciliation queue
 8. Trigger notifications
 9. Update analytics
+10. Persist audit log
+11. Store notification delivery status
+12. Refresh reconciliation and dashboard snapshots
+13. Finalize event processing and archive references
 
 ## 4. Normalization Layer
 
@@ -101,8 +119,4 @@ Transactions → Aggregation Jobs (queues) → Analytics Snapshots → Dashboard
 
 **Phase 4 Status:** Real event layer + provider connections locked. System now ready to handle live financial flows.
 
----
-
-Doc saved.  
-
-All current phases (1-4) are compiled cleanly.  
+All current phases (1-4) are compiled cleanly and ordered.

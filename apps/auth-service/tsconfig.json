@@ -10,6 +10,7 @@
     "sourceMap": true,
     "outDir": "./dist",
     "rootDir": "./src",
+    "isolatedModules": true,
     "incremental": true,
     "skipLibCheck": true,
     "strict": true,
@@ -17,5 +18,5 @@
     "moduleResolution": "NodeNext"
   },
   "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "dist", "test"]
+  "exclude": ["node_modules", "dist", "test", "src/**/__tests__/**"]
 }
