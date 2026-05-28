@@ -1,16 +1,17 @@
-# HEDGE
+# fintech-secure-app
 
-HEDGE is a fintech monorepo organized around a secure auth service, shared packages, and service-specific documentation.
+fintech-secure-app is a professional fintech monorepo for secure application delivery, shared platform code, and operational docs.
 
-## Layout
+## Structure
 
-- `apps/auth-service` — NestJS authentication and identity service
-- `apps/user-service` — user profile and account services
-- `apps/payment-service` — payment processing surface
-- `apps/mobile-app` — mobile client
-- `packages` — shared types, config, logging, security, and utilities
-- `infrastructure` — deployment and platform assets
-- `docs` — architecture, security, onboarding, and compliance docs
-- `scripts` — repository automation helpers
+- `apps/` — deployable applications and services
+- `packages/` — shared libraries, configs, and utilities
+- `docs/` — architecture, security, onboarding, and compliance documentation
+- `infrastructure/` — deployment, runtime, and platform assets
 
-Start with `docs/architecture/overall-design.md` and `docs/architecture/auth-system.md` before changing auth flows.
+## Principles
+
+- Keep services isolated and reusable.
+- Prefer shared packages for cross-cutting concerns.
+- Keep documentation current with architecture changes.
+- Treat security and compliance as first-class concerns.

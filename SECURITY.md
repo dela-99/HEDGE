@@ -1,6 +1,6 @@
 # Security Policy
 
-HEDGE handles fintech workloads, so protect customer and operational data by default.
+fintech-secure-app handles fintech workloads, so protect customer and operational data by default.
 
 ## Secret handling
 
