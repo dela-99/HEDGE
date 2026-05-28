@@ -6,7 +6,7 @@ import { Request } from 'express';
 import { AppConfiguration } from '../../config/configuration';
 
 const refreshExtractor = (request: Request): string | null => {
-  const token = request.body?.refreshToken;
+  const token = request.body?.refreshToken ?? request.cookies?.refreshToken;
   return typeof token === 'string' && token.length ? token : null;
 };
 

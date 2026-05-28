@@ -1,4 +1,5 @@
-import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Post, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import type { User } from '@prisma/client';
 import { Request } from 'express';
 import { AuthService } from './auth.service';
@@ -13,6 +14,7 @@ import { AuthTokenPayload } from './auth.types';
 
 type RequestWithUser = Request & { user: User | AuthTokenPayload };
 
+@Throttle({ default: { limit: 5, ttl: 60_000 } })
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -34,9 +36,15 @@ export class AuthController {
   @UseGuards(JwtRefreshGuard)
   @Post('refresh')
   refresh(@Req() request: RequestWithUser, @Body() dto: RefreshTokenDto) {
+    const refreshToken = dto.refreshToken ?? request.cookies?.refreshToken;
+
+    if (!refreshToken || typeof refreshToken !== 'string') {
+      throw new UnauthorizedException('Refresh token is required');
+    }
+
     return this.authService.refreshTokens(
       request.user as AuthTokenPayload,
-      dto.refreshToken,
+      refreshToken,
       this.contextFromRequest(request),
     );
   }
