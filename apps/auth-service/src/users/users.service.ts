@@ -1,16 +1,11 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { User } from '@prisma/client';
 import * as argon2 from 'argon2';
-import { AuditService } from '../audit/audit.service';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class UsersService {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly auditService: AuditService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async createUser(input: { email: string; password: string; name?: string }) {
     const email = this.normalizeEmail(input.email);
@@ -28,7 +23,7 @@ export class UsersService {
       },
     });
 
-    return user;
+    return this.publicUser(user);
   }
 
   async findByEmailWithPassword(email: string) {
@@ -44,38 +39,31 @@ export class UsersService {
   }
 
   async updateProfile(userId: string, input: { name?: string }) {
-    if (!Object.keys(input).length) {
-      throw new BadRequestException('At least one field must be provided');
-    }
-
     const currentUser = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!currentUser) {
       throw new NotFoundException('User not found');
     }
 
-    let user: User;
-    try {
-      user = await this.prisma.user.update({
-        where: { id: userId },
-        data: input,
-      });
-    } catch (error) {
-      if ((error as { code?: string }).code === 'P2025') {
-        throw new NotFoundException('User not found');
-      }
-
-      throw error;
+    const data = this.buildMetadataUpdate(input);
+    if (!Object.keys(data).length) {
+      return this.publicUser(currentUser);
     }
 
-    await this.auditService.record({
-      action: 'users.update-profile',
-      userId,
-      targetType: 'User',
-      targetId: userId,
-      metadata: { changedFields: Object.keys(input), before: { name: currentUser.name }, after: input } satisfies Prisma.InputJsonValue,
+    const user = await this.prisma.user.update({
+      where: { id: userId },
+      data,
     });
 
     return this.publicUser(user);
+  }
+
+  private buildMetadataUpdate(input: { name?: string }) {
+    const data: { name?: string } = {};
+    if (input.name !== undefined) {
+      data.name = input.name;
+    }
+
+    return data;
   }
 
   private publicUser(user: User) {
