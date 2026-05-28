@@ -67,7 +67,7 @@ function parseCorsOrigins(env: NodeJS.ProcessEnv) {
           throw new Error();
         }
       } catch {
-        throw new Error('CORS_ORIGIN must contain one or more valid http(s) origins separated by commas');
+        throw new Error(`Invalid CORS origin "${origin}" in CORS_ORIGIN; use comma-separated http(s) origins`);
       }
 
       return origin;

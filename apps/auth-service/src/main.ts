@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { ValidationPipe } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import cookieParser from 'cookie-parser';
@@ -10,8 +10,24 @@ import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
   const config = app.get(ConfigService);
-  const corsOrigins = config.get<string[]>('app.corsOrigins') ?? [];
+  const nodeEnv = config.get<string>('app.nodeEnv') ?? 'development';
+  const configuredCorsOrigins = config.get<string[]>('app.corsOrigins') ?? [];
   const httpServer = app.getHttpAdapter().getInstance();
+  const corsOrigins =
+    configuredCorsOrigins.length > 0
+      ? configuredCorsOrigins
+      : nodeEnv === 'development'
+        ? ['http://localhost:3000', 'http://localhost:4200', 'http://localhost:5173']
+        : [];
+
+  if (configuredCorsOrigins.length === 0) {
+    Logger.warn(
+      nodeEnv === 'development'
+        ? 'CORS_ORIGIN is not configured; allowing common localhost origins in development.'
+        : 'CORS_ORIGIN is not configured; cross-origin requests are disabled.',
+      'Bootstrap',
+    );
+  }
 
   httpServer.disable('x-powered-by');
   app.use(cookieParser());
