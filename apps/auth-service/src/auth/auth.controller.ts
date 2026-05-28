@@ -1,8 +1,9 @@
-import { Body, Controller, Post, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
 import type { User } from '@prisma/client';
 import { Request } from 'express';
 import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Public } from '../common/decorators/public.decorator';
 import { LocalAuthGuard } from '../common/guards/local-auth.guard';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
@@ -57,6 +58,12 @@ export class AuthController {
   @Post('logout')
   logout(@Req() request: RequestWithUser) {
     return this.authService.logout(request.user as AuthTokenPayload);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('me')
+  me(@CurrentUser() user: AuthTokenPayload) {
+    return this.authService.currentUser(user.sub);
   }
 
   private contextFromRequest(request: Request) {

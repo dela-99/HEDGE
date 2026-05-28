@@ -109,6 +109,16 @@ export class AuthService {
     return { success: true };
   }
 
+  async currentUser(userId: string) {
+    const user = await this.usersService.findById(userId);
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    return user;
+  }
+
   private async issueTokens(user: Pick<User, 'id' | 'email' | 'role'>, context: RequestContext, action: string) {
     const sessionId = randomUUID();
     const tokens = await this.signTokens(user, sessionId);
