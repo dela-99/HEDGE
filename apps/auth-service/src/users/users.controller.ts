@@ -1,4 +1,5 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Role } from '@prisma/client';
 import { AuthTokenPayload } from '../auth/auth.types';
 import { Roles } from '../common/decorators/roles.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -11,7 +12,7 @@ import { UsersService } from './users.service';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Roles('merchant_owner', 'admin')
+  @Roles(Role.merchant_owner, Role.admin)
   @Get('me')
   async me(@CurrentUser() user: AuthTokenPayload) {
     return this.usersService.findById(user.sub);
