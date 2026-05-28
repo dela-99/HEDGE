@@ -1,5 +1,3 @@
-const DURATION_PATTERN = /^[0-9]+[smhd]$/;
-
 export interface AppConfiguration {
   app: {
     port: number;
@@ -34,8 +32,8 @@ function requirePort(env: NodeJS.ProcessEnv) {
   const rawPort = requireString(env, 'PORT');
   const port = Number(rawPort);
 
-  if (!Number.isInteger(port) || port <= 0) {
-    throw new Error('PORT must be a positive integer');
+  if (!Number.isInteger(port) || port <= 0 || port > 65535) {
+    throw new Error('PORT must be a positive integer between 1 and 65535');
   }
 
   return port;
@@ -44,7 +42,7 @@ function requirePort(env: NodeJS.ProcessEnv) {
 function requireDuration(env: NodeJS.ProcessEnv, key: string) {
   const value = requireString(env, key);
 
-  if (!DURATION_PATTERN.test(value)) {
+  if (!/^\d+[smhd]$/.test(value)) {
     throw new Error(`${key} must use a duration format such as 15m or 7d`);
   }
 
