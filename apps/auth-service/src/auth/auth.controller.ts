@@ -41,7 +41,7 @@ export class AuthController {
   refresh(@Req() request: RequestWithUser, @Body() dto: RefreshTokenDto) {
     const refreshToken = extractRefreshToken(request) ?? dto.refreshToken;
 
-    if (!refreshToken || typeof refreshToken !== 'string') {
+    if (!refreshToken) {
       throw new UnauthorizedException('Refresh token is required');
     }
 
