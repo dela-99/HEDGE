@@ -44,7 +44,7 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
 
-    const data = this.buildMetadataUpdate(input);
+    const data = input.name === undefined ? {} : { name: input.name };
     if (!Object.keys(data).length) {
       return this.publicUser(currentUser);
     }
@@ -55,15 +55,6 @@ export class UsersService {
     });
 
     return this.publicUser(user);
-  }
-
-  private buildMetadataUpdate(input: { name?: string }) {
-    const data: { name?: string } = {};
-    if (input.name !== undefined) {
-      data.name = input.name;
-    }
-
-    return data;
   }
 
   private publicUser(user: User) {
