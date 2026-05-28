@@ -10,6 +10,7 @@
     "sourceMap": true,
     "outDir": "./dist",
     "rootDir": "./src",
+    "isolatedModules": true,
     "incremental": true,
     "skipLibCheck": true,
     "strict": true,
@@ -17,5 +18,9 @@
     "moduleResolution": "NodeNext"
   },
   "include": ["src/**/*.ts"],
+<<<<<<< HEAD
   "exclude": ["node_modules", "dist", "test", "**/*.spec.ts"]
+=======
+  "exclude": ["node_modules", "dist", "test", "src/**/__tests__/**"]
+>>>>>>> 88168253c6d945180ddc96650ddd16287cf5323e
 }

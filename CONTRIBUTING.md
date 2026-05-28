@@ -1,4 +1,4 @@
-# Contributing to HEDGE
+# Contributing to fintech-secure-app
 
 ## Team rules
 

@@ -7,64 +7,67 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum UserRole {
-  USER
-  ADMIN
-  COMPLIANCE
-  SUPPORT
+enum Role {
+  merchant_owner
+  admin
 }
 
 model User {
-  id           String     @id @default(uuid()) @db.Uuid
-  email        String     @unique
+  id           String    @id @default(uuid())
+  email        String    @unique
   passwordHash String
-  name         String?
-  role         UserRole   @default(USER)
+  role         Role
+
+  isVerified   Boolean   @default(false)
+  mfaEnabled   Boolean   @default(false)
+  lastLoginAt  DateTime?
+
   sessions     Session[]
   auditLogs    AuditLog[]
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
-  deletedAt    DateTime?
 
-  @@index([role])
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([email])
 }
 
 model Session {
-  id              String     @id @default(uuid()) @db.Uuid
-  userId          String     @db.Uuid
-  user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  refreshTokenHash String?
-  ipAddress       String?
-  userAgent       String?
-  deviceId        String?
-  revokedAt       DateTime?
-  rotatedAt       DateTime?
-  expiresAt       DateTime
-  lastSeenAt      DateTime?
-  auditLogs       AuditLog[]
-  createdAt       DateTime   @default(now())
-  updatedAt       DateTime   @updatedAt
+  id                String    @id @default(uuid())
+
+  userId            String
+  refreshTokenHash  String
+
+  ipAddress         String?
+  deviceInfo        String?
+  lastActiveAt      DateTime  @default(now())
+
+  revoked           Boolean   @default(false)
+
+  expiresAt         DateTime
+
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt         DateTime  @default(now())
 
   @@index([userId])
-  @@index([expiresAt])
 }
 
 model AuditLog {
-  id         String   @id @default(uuid()) @db.Uuid
-  userId     String?  @db.Uuid
-  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  sessionId  String?  @db.Uuid
-  session    Session? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
-  action     String
-  targetType String?
-  targetId   String?
-  ipAddress  String?
-  userAgent  String?
-  metadata   Json?
-  createdAt  DateTime @default(now())
+  id            String    @id @default(uuid())
 
-  @@index([userId])
-  @@index([sessionId])
+  actorId       String?
+
+  action        String
+
+  ipAddress     String?
+  deviceInfo    String?
+
+  metadata      Json?
+
+  createdAt     DateTime  @default(now())
+
+  actor         User?     @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([actorId])
   @@index([action])
-  @@index([createdAt])
 }
