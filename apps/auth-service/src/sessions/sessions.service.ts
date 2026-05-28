@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Session } from '@prisma/client';
+import * as argon2 from 'argon2';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -46,6 +47,25 @@ export class SessionsService {
     return this.prisma.session.findUnique({
       where: { id: sessionId },
     });
+  }
+
+  async findSessionByRefreshToken(userId: string, refreshToken: string): Promise<Session | null> {
+    const sessions = await this.prisma.session.findMany({
+      where: {
+        userId,
+        revoked: false,
+        expiresAt: { gt: new Date() },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    for (const session of sessions) {
+      if (await argon2.verify(session.refreshTokenHash, refreshToken)) {
+        return session;
+      }
+    }
+
+    return null;
   }
 
   async updateSessionActivity(

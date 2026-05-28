@@ -4,10 +4,9 @@ export type AuthTokenPayload = {
   sub: string;
   email: string;
   role: Role;
-  sid: string;
 };
 
-export type JwtPayload = Pick<AuthTokenPayload, 'sub' | 'email' | 'role'>;
+export type JwtPayload = AuthTokenPayload;
 
 export function isJwtPayload(payload: unknown): payload is AuthTokenPayload {
   if (!payload || typeof payload !== 'object') {
@@ -20,8 +19,6 @@ export function isJwtPayload(payload: unknown): payload is AuthTokenPayload {
     candidate.sub.length > 0 &&
     typeof candidate.email === 'string' &&
     candidate.email.length > 0 &&
-    (candidate.role === Role.admin || candidate.role === Role.merchant_owner) &&
-    typeof candidate.sid === 'string' &&
-    candidate.sid.length > 0
+    (candidate.role === Role.admin || candidate.role === Role.merchant_owner)
   );
 }

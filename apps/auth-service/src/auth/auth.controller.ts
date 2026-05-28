@@ -57,7 +57,11 @@ export class AuthController {
   @Throttle({ default: { limit: 20, ttl: 60_000 } })
   @Post('logout')
   logout(@Req() request: RequestWithUser) {
-    return this.authService.logout(request.user as AuthTokenPayload);
+    return this.authService.logout(
+      request.user as AuthTokenPayload,
+      this.contextFromRequest(request),
+      extractRefreshToken(request) ?? undefined,
+    );
   }
 
   @UseGuards(JwtAuthGuard)
@@ -69,7 +73,21 @@ export class AuthController {
   private contextFromRequest(request: Request) {
     return {
       ipAddress: request.ip,
-      userAgent: request.headers['user-agent'] ?? null,
+      deviceInfo: this.deviceInfoFromRequest(request),
     };
+  }
+
+  private deviceInfoFromRequest(request: Request) {
+    const userAgent = request.headers['user-agent'];
+
+    if (typeof userAgent === 'string') {
+      return userAgent;
+    }
+
+    if (Array.isArray(userAgent)) {
+      return userAgent[0] ?? null;
+    }
+
+    return null;
   }
 }

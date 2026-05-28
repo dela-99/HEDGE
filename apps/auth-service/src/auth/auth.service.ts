@@ -1,7 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { Role, User } from '@prisma/client';
+import { User } from '@prisma/client';
 import * as argon2 from 'argon2';
 import { randomUUID } from 'node:crypto';
 import { durationToMs } from '../common/utils/duration.util';
@@ -13,13 +13,6 @@ import { UsersService } from '../users/users.service';
 type RequestContext = {
   ipAddress: string | undefined;
   deviceInfo: string | null;
-};
-
-type TokenPayload = {
-  sub: string;
-  email: string;
-  role: Role;
-  sid: string;
 };
 
 @Injectable()
@@ -57,30 +50,18 @@ export class AuthService {
   }
 
   async refreshTokens(payload: AuthTokenPayload, refreshToken: string, context: RequestContext) {
-    const userId = payload.sub;
-    const sessionId = payload.sid;
-    const session = await this.sessionsService.findSessionById(sessionId);
-    if (!session || session.userId !== userId || session.revoked || session.expiresAt.getTime() <= Date.now()) {
+    const session = await this.sessionsService.findSessionByRefreshToken(payload.sub, refreshToken);
+
+    if (!session || session.expiresAt.getTime() <= Date.now()) {
       throw new UnauthorizedException('Session is not active');
     }
 
-    if (!session.refreshTokenHash) {
-      throw new UnauthorizedException('Session is not initialized');
-    }
-
-    const matches = await argon2.verify(session.refreshTokenHash, refreshToken);
-
-    if (!matches) {
-      await this.sessionsService.revokeSession(session.id);
-      throw new UnauthorizedException('Refresh token mismatch');
-    }
-
-    const user = await this.usersService.findById(userId);
+    const user = await this.usersService.findById(payload.sub);
     if (!user) {
       throw new UnauthorizedException('User no longer exists');
     }
 
-    const tokens = await this.signTokens(user, session.id);
+    const tokens = await this.signTokens(user);
     const refreshTokenHash = await argon2.hash(tokens.refreshToken);
     await this.sessionsService.updateSessionActivity(session.id, {
       refreshTokenHash,
@@ -91,9 +72,9 @@ export class AuthService {
 
     await this.auditService.logRefresh({
       actorId: user.id,
-      sessionId: session.id,
       ipAddress: context.ipAddress,
       deviceInfo: context.deviceInfo,
+      metadata: { sessionId: session.id },
     });
 
     return {
@@ -103,14 +84,24 @@ export class AuthService {
     };
   }
 
-  async logout(payload: AuthTokenPayload) {
-    const sessionId = payload.sid;
-    const userId = payload.sub;
-    await this.sessionsService.revokeSession(sessionId);
+  async logout(payload: AuthTokenPayload, context: RequestContext, refreshToken?: string) {
+    const session = refreshToken
+      ? await this.sessionsService.findSessionByRefreshToken(payload.sub, refreshToken)
+      : null;
+
+    const revokedSessions = session
+      ? 1
+      : await this.sessionsService.revokeAllUserSessions(payload.sub);
+
+    if (session) {
+      await this.sessionsService.revokeSession(session.id);
+    }
 
     await this.auditService.logLogout({
-      actorId: userId,
-      sessionId,
+      actorId: payload.sub,
+      ipAddress: context.ipAddress,
+      deviceInfo: context.deviceInfo,
+      metadata: session ? { sessionId: session.id } : { revokedSessions },
     });
 
     return { success: true };
@@ -128,7 +119,7 @@ export class AuthService {
 
   private async issueTokens(user: Pick<User, 'id' | 'email' | 'role'>, context: RequestContext, action: 'signup' | 'login') {
     const sessionId = randomUUID();
-    const tokens = await this.signTokens(user, sessionId);
+    const tokens = await this.signTokens(user);
     const refreshTokenHash = await argon2.hash(tokens.refreshToken);
     const session = await this.sessionsService.createSession({
       id: sessionId,
@@ -144,16 +135,16 @@ export class AuthService {
     if (action === 'signup') {
       await this.auditService.logSignup({
         actorId: user.id,
-        sessionId: session.id,
         ipAddress: context.ipAddress,
         deviceInfo: context.deviceInfo,
+        metadata: { sessionId: session.id },
       });
     } else {
       await this.auditService.logLogin({
         actorId: user.id,
-        sessionId: session.id,
         ipAddress: context.ipAddress,
         deviceInfo: context.deviceInfo,
+        metadata: { sessionId: session.id },
       });
     }
 
@@ -164,12 +155,11 @@ export class AuthService {
     };
   }
 
-  private async signTokens(user: Pick<User, 'id' | 'email' | 'role'>, sessionId: string) {
-    const payload: TokenPayload = {
+  private async signTokens(user: Pick<User, 'id' | 'email' | 'role'>) {
+    const payload: AuthTokenPayload = {
       sub: user.id,
       email: user.email,
       role: user.role,
-      sid: sessionId,
     };
 
     const accessToken = await this.jwtService.signAsync(payload, {
@@ -177,13 +167,10 @@ export class AuthService {
       expiresIn: this.configService.getOrThrow('jwt.accessExpiresIn'),
     });
 
-    const refreshToken = await this.jwtService.signAsync(
-      { ...payload, tokenType: 'refresh' },
-      {
-        secret: this.configService.getOrThrow('jwt.refreshSecret'),
-        expiresIn: this.configService.getOrThrow('jwt.refreshExpiresIn'),
-      },
-    );
+    const refreshToken = await this.jwtService.signAsync(payload, {
+      secret: this.configService.getOrThrow('jwt.refreshSecret'),
+      expiresIn: this.configService.getOrThrow('jwt.refreshExpiresIn'),
+    });
 
     return { accessToken, refreshToken };
   }
