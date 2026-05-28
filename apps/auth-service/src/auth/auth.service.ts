@@ -12,7 +12,7 @@ import { UsersService } from '../users/users.service';
 
 type RequestContext = {
   ipAddress: string | undefined;
-  userAgent: string | null;
+  deviceInfo: string | null;
 };
 
 type TokenPayload = {
@@ -38,7 +38,7 @@ export class AuthService {
       email: input.email,
       passwordHash,
     });
-    return this.issueTokens(user, context, 'auth.register');
+    return this.issueTokens(user, context, 'signup');
   }
 
   async validateUser(email: string, password: string) {
@@ -53,13 +53,16 @@ export class AuthService {
   }
 
   async login(user: Pick<User, 'id' | 'email' | 'role'>, context: RequestContext) {
-    return this.issueTokens(user, context, 'auth.login');
+    return this.issueTokens(user, context, 'login');
   }
 
   async refreshTokens(payload: AuthTokenPayload, refreshToken: string, context: RequestContext) {
     const userId = payload.sub;
     const sessionId = payload.sid;
-    const session = await this.sessionsService.assertActiveSession(sessionId, userId);
+    const session = await this.sessionsService.findSessionById(sessionId);
+    if (!session || session.userId !== userId || session.revoked || session.expiresAt.getTime() <= Date.now()) {
+      throw new UnauthorizedException('Session is not active');
+    }
 
     if (!session.refreshTokenHash) {
       throw new UnauthorizedException('Session is not initialized');
@@ -78,14 +81,19 @@ export class AuthService {
     }
 
     const tokens = await this.signTokens(user, session.id);
-    await this.sessionsService.rotateRefreshToken(session.id, tokens.refreshToken, this.refreshExpiry());
+    const refreshTokenHash = await argon2.hash(tokens.refreshToken);
+    await this.sessionsService.updateSessionActivity(session.id, {
+      refreshTokenHash,
+      lastActiveAt: new Date(),
+      ipAddress: context.ipAddress,
+      deviceInfo: context.deviceInfo,
+    });
 
-    await this.auditService.record({
-      action: 'auth.refresh',
-      userId: user.id,
+    await this.auditService.logRefresh({
+      actorId: user.id,
       sessionId: session.id,
       ipAddress: context.ipAddress,
-      userAgent: context.userAgent,
+      deviceInfo: context.deviceInfo,
     });
 
     return {
@@ -100,9 +108,8 @@ export class AuthService {
     const userId = payload.sub;
     await this.sessionsService.revokeSession(sessionId);
 
-    await this.auditService.record({
-      action: 'auth.logout',
-      userId,
+    await this.auditService.logLogout({
+      actorId: userId,
       sessionId,
     });
 
@@ -119,7 +126,7 @@ export class AuthService {
     return user;
   }
 
-  private async issueTokens(user: Pick<User, 'id' | 'email' | 'role'>, context: RequestContext, action: string) {
+  private async issueTokens(user: Pick<User, 'id' | 'email' | 'role'>, context: RequestContext, action: 'signup' | 'login') {
     const sessionId = randomUUID();
     const tokens = await this.signTokens(user, sessionId);
     const refreshTokenHash = await argon2.hash(tokens.refreshToken);
@@ -129,20 +136,26 @@ export class AuthService {
       refreshTokenHash,
       expiresAt: this.refreshExpiry(),
       ipAddress: context.ipAddress,
-      userAgent: context.userAgent,
+      deviceInfo: context.deviceInfo,
     });
 
-    if (action !== 'auth.refresh') {
-      await this.usersService.updateLastLogin(user.id);
+    await this.usersService.updateLastLogin(user.id);
+
+    if (action === 'signup') {
+      await this.auditService.logSignup({
+        actorId: user.id,
+        sessionId: session.id,
+        ipAddress: context.ipAddress,
+        deviceInfo: context.deviceInfo,
+      });
+    } else {
+      await this.auditService.logLogin({
+        actorId: user.id,
+        sessionId: session.id,
+        ipAddress: context.ipAddress,
+        deviceInfo: context.deviceInfo,
+      });
     }
-
-    await this.auditService.record({
-      action,
-      userId: user.id,
-      sessionId: session.id,
-      ipAddress: context.ipAddress,
-      userAgent: context.userAgent,
-    });
 
     return {
       user: this.publicUser(user),

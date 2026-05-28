@@ -1,15 +1,10 @@
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
-import * as argon2 from 'argon2';
-import { REDIS_CLIENT } from '../database/database.constants';
+import { Injectable } from '@nestjs/common';
+import { Session } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
-import Redis from 'ioredis';
 
 @Injectable()
 export class SessionsService {
-  constructor(
-    private readonly prisma: PrismaService,
-    @Inject(REDIS_CLIENT) private readonly redis: Redis,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async createSession(input: {
     id: string;
@@ -17,57 +12,59 @@ export class SessionsService {
     refreshTokenHash: string;
     expiresAt: Date;
     ipAddress?: string;
-    userAgent?: string | null;
-  }) {
-    const session = await this.prisma.session.create({
+    deviceInfo?: string | null;
+  }): Promise<Session> {
+    return this.prisma.session.create({
       data: {
         id: input.id,
         userId: input.userId,
         refreshTokenHash: input.refreshTokenHash,
         expiresAt: input.expiresAt,
         ipAddress: input.ipAddress,
-        deviceInfo: input.userAgent ?? undefined,
+        deviceInfo: input.deviceInfo ?? undefined,
       },
     });
-
-    await this.redis.set(this.cacheKey(session.id), JSON.stringify({ userId: session.userId }), 'EX', this.ttlSeconds(session.expiresAt));
-    return session;
   }
 
-  async assertActiveSession(sessionId: string, userId: string) {
-    const session = await this.prisma.session.findUnique({ where: { id: sessionId } });
-
-    if (!session || session.userId !== userId || session.revoked || session.expiresAt.getTime() <= Date.now()) {
-      throw new UnauthorizedException('Session is not active');
-    }
-
-    return session;
-  }
-
-  async rotateRefreshToken(sessionId: string, refreshToken: string, expiresAt: Date) {
-    const refreshTokenHash = await argon2.hash(refreshToken);
+  async revokeSession(sessionId: string): Promise<Session> {
     return this.prisma.session.update({
-      where: { id: sessionId },
-      data: {
-        refreshTokenHash,
-        expiresAt,
-      },
-    });
-  }
-
-  async revokeSession(sessionId: string) {
-    await this.prisma.session.update({
       where: { id: sessionId },
       data: { revoked: true },
     });
-    await this.redis.del(this.cacheKey(sessionId));
   }
 
-  private cacheKey(sessionId: string) {
-    return `hedge:session:${sessionId}`;
+  async revokeAllUserSessions(userId: string): Promise<number> {
+    const result = await this.prisma.session.updateMany({
+      where: { userId, revoked: false },
+      data: { revoked: true },
+    });
+
+    return result.count;
   }
 
-  private ttlSeconds(expiresAt: Date) {
-    return Math.max(1, Math.ceil((expiresAt.getTime() - Date.now()) / 1000));
+  async findSessionById(sessionId: string): Promise<Session | null> {
+    return this.prisma.session.findUnique({
+      where: { id: sessionId },
+    });
+  }
+
+  async updateSessionActivity(
+    sessionId: string,
+    input: {
+      refreshTokenHash?: string;
+      ipAddress?: string;
+      deviceInfo?: string | null;
+      lastActiveAt?: Date;
+    } = {},
+  ): Promise<Session> {
+    return this.prisma.session.update({
+      where: { id: sessionId },
+      data: {
+        refreshTokenHash: input.refreshTokenHash,
+        ipAddress: input.ipAddress,
+        deviceInfo: input.deviceInfo ?? undefined,
+        lastActiveAt: input.lastActiveAt ?? new Date(),
+      },
+    });
   }
 }

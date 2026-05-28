@@ -39,6 +39,7 @@ model Session {
 
   ipAddress         String?
   deviceInfo        String?
+  lastActiveAt      DateTime  @default(now())
 
   revoked           Boolean   @default(false)
 
