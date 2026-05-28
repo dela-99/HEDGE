@@ -44,14 +44,13 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
 
-    const data = input.name === undefined ? {} : { name: input.name };
-    if (!Object.keys(data).length) {
+    if (input.name === undefined) {
       return this.publicUser(currentUser);
     }
 
     const user = await this.prisma.user.update({
       where: { id: userId },
-      data,
+      data: { name: input.name },
     });
 
     return this.publicUser(user);
