@@ -14,6 +14,7 @@ import { UsersModule } from './users/users.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: ['.env', 'apps/auth-service/.env'],
       load: [configuration],
       validate: validateEnv,
     }),

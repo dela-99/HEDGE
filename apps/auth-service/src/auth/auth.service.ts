@@ -5,6 +5,7 @@ import { User, UserRole } from '@prisma/client';
 import * as argon2 from 'argon2';
 import { durationToMs } from '../common/utils/duration.util';
 import { AuditService } from '../audit/audit.service';
+import { AppConfiguration } from '../config/configuration';
 import { AuthTokenPayload } from './auth.types';
 import { SessionsService } from '../sessions/sessions.service';
 import { UsersService } from '../users/users.service';
@@ -139,15 +140,15 @@ export class AuthService {
     };
 
     const accessToken = await this.jwtService.signAsync(payload, {
-      secret: this.configService.getOrThrow<string>('jwt.accessSecret'),
-      expiresIn: this.configService.getOrThrow<string>('jwt.accessTtl'),
+      secret: this.configService.getOrThrow('jwt.accessSecret'),
+      expiresIn: this.configService.getOrThrow('jwt.accessExpiresIn'),
     });
 
     const refreshToken = await this.jwtService.signAsync(
       { ...payload, tokenType: 'refresh' },
       {
-        secret: this.configService.getOrThrow<string>('jwt.refreshSecret'),
-        expiresIn: this.configService.getOrThrow<string>('jwt.refreshTtl'),
+        secret: this.configService.getOrThrow('jwt.refreshSecret'),
+        expiresIn: this.configService.getOrThrow('jwt.refreshExpiresIn'),
       },
     );
 
@@ -155,7 +156,7 @@ export class AuthService {
   }
 
   private refreshExpiry() {
-    return new Date(Date.now() + durationToMs(this.configService.getOrThrow<string>('jwt.refreshTtl')));
+    return new Date(Date.now() + durationToMs(this.configService.getOrThrow('jwt.refreshExpiresIn')));
   }
 
   private publicUser(user: object) {

@@ -28,3 +28,7 @@ NestJS authentication service for HEDGE.
 - `npm run start:dev`
 - `npm run build`
 - `npm run prisma:generate`
+
+## Environment
+
+Copy `.env.example` to `.env` and provide the required runtime variables before starting the service.
