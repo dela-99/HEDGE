@@ -10,6 +10,7 @@ import { DatabaseModule } from './database/database.module';
 import { MtnMomoModule } from './mtn-momo/mtn-momo.module';
 import { SessionsModule } from './sessions/sessions.module';
 import { UsersModule } from './users/users.module';
+import { WebhookVerifierModule } from './webhooks/webhook-verifier.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { UsersModule } from './users/users.module';
     UsersModule,
     SessionsModule,
     AuditModule,
+    WebhookVerifierModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
