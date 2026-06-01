@@ -119,6 +119,8 @@ describe('AnalyticsService', () => {
       expect(insufficientFundsFailure).toBeDefined();
       expect(insufficientFundsFailure!.count).toBe(2);
       expect(insufficientFundsFailure!.date.toISOString()).toContain('2026-06-01');
+      // 2 out of 3 failures = ~66.67%
+      expect(insufficientFundsFailure!.percentage).toBeCloseTo(66.67, 1);
       
       const networkErrorFailure = metrics.failedTransactions.find(
         f => f.failureReason === 'network_error'
@@ -126,6 +128,8 @@ describe('AnalyticsService', () => {
       expect(networkErrorFailure).toBeDefined();
       expect(networkErrorFailure!.count).toBe(1);
       expect(networkErrorFailure!.date.toISOString()).toContain('2026-06-01');
+      // 1 out of 3 failures = ~33.33%
+      expect(networkErrorFailure!.percentage).toBeCloseTo(33.33, 1);
     });
 
     it('should filter transactions outside date range', () => {

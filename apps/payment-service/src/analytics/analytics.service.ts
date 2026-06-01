@@ -235,14 +235,15 @@ export class AnalyticsService {
       }))
       .sort((a, b) => a.date.getTime() - b.date.getTime());
 
-    // Calculate failure metrics with accurate dates
+    // Calculate failure metrics with accurate dates and distribution percentages
     const failedTransactions = Array.from(failuresByDateReason.values())
       .map((f) => ({
         date: f.date,
         failureReason: f.reason,
         count: f.count,
-        percentage: totalTransactionsProcessed > 0
-          ? (f.count / totalTransactionsProcessed) * 100
+        // Percentage is the proportion of this failure reason among all failures for that date
+        percentage: totalFailures > 0
+          ? (f.count / totalFailures) * 100
           : 0,
       }))
       .sort((a, b) => a.date.getTime() - b.date.getTime() || b.count - a.count);
