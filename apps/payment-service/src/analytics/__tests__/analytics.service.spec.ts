@@ -111,8 +111,21 @@ describe('AnalyticsService', () => {
       expect(metrics.totalRevenue).toBe(100); // Only succeeded
       expect(metrics.totalFailures).toBe(3);
       expect(metrics.failedTransactions).toHaveLength(2);
-      expect(metrics.failedTransactions[0].count).toBe(2); // insufficient_funds
-      expect(metrics.failedTransactions[1].count).toBe(1); // network_error
+      
+      // Verify failure dates are from the transaction period, not current date
+      const insufficientFundsFailure = metrics.failedTransactions.find(
+        f => f.failureReason === 'insufficient_funds'
+      );
+      expect(insufficientFundsFailure).toBeDefined();
+      expect(insufficientFundsFailure!.count).toBe(2);
+      expect(insufficientFundsFailure!.date.toISOString()).toContain('2026-06-01');
+      
+      const networkErrorFailure = metrics.failedTransactions.find(
+        f => f.failureReason === 'network_error'
+      );
+      expect(networkErrorFailure).toBeDefined();
+      expect(networkErrorFailure!.count).toBe(1);
+      expect(networkErrorFailure!.date.toISOString()).toContain('2026-06-01');
     });
 
     it('should filter transactions outside date range', () => {

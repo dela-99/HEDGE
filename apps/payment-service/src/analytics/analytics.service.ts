@@ -167,11 +167,19 @@ export class AnalyticsService {
       }
     >();
 
-    // Group failed transactions by reason
-    const failuresByReason = new Map<string, number>();
+    // Group failed transactions by date and reason
+    const failuresByDateReason = new Map<
+      string,
+      {
+        count: number;
+        date: Date;
+        reason: string;
+      }
+    >();
 
     let totalRevenue = 0;
     let totalFailures = 0;
+    let totalTransactionsProcessed = 0;
 
     for (const tx of filteredTransactions) {
       const dateKey = this.getDateKey(tx.transactionDate);
@@ -195,12 +203,25 @@ export class AnalyticsService {
         dayData.count += 1;
       }
 
-      // Track failures
+      // Track failures with date accuracy
       if (tx.status === 'failed') {
         totalFailures += 1;
         const reason = tx.failureReason || 'unknown';
-        failuresByReason.set(reason, (failuresByReason.get(reason) || 0) + 1);
+        const failureKey = `${dateKey}:${reason}`;
+
+        if (!failuresByDateReason.has(failureKey)) {
+          failuresByDateReason.set(failureKey, {
+            count: 0,
+            date: this.getDateFromKey(dateKey),
+            reason,
+          });
+        }
+
+        const failureData = failuresByDateReason.get(failureKey)!;
+        failureData.count += 1;
       }
+
+      totalTransactionsProcessed += 1;
     }
 
     // Convert daily data to sorted array
@@ -214,17 +235,17 @@ export class AnalyticsService {
       }))
       .sort((a, b) => a.date.getTime() - b.date.getTime());
 
-    // Calculate failure metrics
-    const failedTransactions = Array.from(failuresByReason.entries())
-      .map(([reason, count]) => ({
-        date: new Date(), // Failure metrics are computed on request
-        failureReason: reason,
-        count,
-        percentage: filteredTransactions.length > 0
-          ? (count / filteredTransactions.length) * 100
+    // Calculate failure metrics with accurate dates
+    const failedTransactions = Array.from(failuresByDateReason.values())
+      .map((f) => ({
+        date: f.date,
+        failureReason: f.reason,
+        count: f.count,
+        percentage: totalTransactionsProcessed > 0
+          ? (f.count / totalTransactionsProcessed) * 100
           : 0,
       }))
-      .sort((a, b) => b.count - a.count);
+      .sort((a, b) => a.date.getTime() - b.date.getTime() || b.count - a.count);
 
     return {
       generatedAt: new Date(),
@@ -374,7 +395,7 @@ export class AnalyticsService {
     });
 
     // Group signals by date, type, and severity
-    const signalsByDateTypeServer = new Map<
+    const signalsByDateTypeSeverity = new Map<
       string,
       {
         count: number;
@@ -391,8 +412,8 @@ export class AnalyticsService {
       const dateKey = this.getDateKey(signal.detectedAt);
       const typeKey = `${dateKey}:${signal.signalType}:${signal.severity}`;
 
-      if (!signalsByDateTypeServer.has(typeKey)) {
-        signalsByDateTypeServer.set(typeKey, {
+      if (!signalsByDateTypeSeverity.has(typeKey)) {
+        signalsByDateTypeSeverity.set(typeKey, {
           count: 0,
           severityScores: [],
           date: this.getDateFromKey(dateKey),
@@ -401,13 +422,13 @@ export class AnalyticsService {
         });
       }
 
-      const entry = signalsByDateTypeServer.get(typeKey)!;
+      const entry = signalsByDateTypeSeverity.get(typeKey)!;
       entry.count += 1;
       entry.severityScores.push(severityScoreMap[signal.severity]);
     }
 
     // Convert to result format
-    return Array.from(signalsByDateTypeServer.values())
+    return Array.from(signalsByDateTypeSeverity.values())
       .map((entry) => ({
         date: entry.date,
         signalType: entry.signalType,
