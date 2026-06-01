@@ -78,9 +78,10 @@ function parseDurationToSeconds(duration: string): number {
       return value * 3600;
     case 'd':
       return value * 86400;
-    default:
-      return value;
   }
+
+  // This should never be reached due to regex validation, but TypeScript requires it
+  throw new Error(`Unexpected duration unit: ${unit}`);
 }
 
 function optionalDurationInSeconds(env: NodeJS.ProcessEnv, key: string, defaultDays: number): number {

@@ -62,7 +62,7 @@ export class WebhookVerifierService {
       await this.checkReplayAttack(dto.transactionId, dto.externalId);
 
       // Step 4: Store webhook receipt to prevent replays
-      await this.storeWebhookReceipt(dto.transactionId, dto.externalId, signature!);
+      await this.storeWebhookReceipt(dto.transactionId, dto.externalId);
 
       // Step 5: Log successful verification
       await this.logVerificationAudit(
@@ -134,7 +134,7 @@ export class WebhookVerifierService {
     // Check numeric fields
     for (const field of numericFields) {
       const value = dto[field];
-      if (typeof value !== 'number' || value < 0) {
+      if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) {
         const error: WebhookVerificationError = {
           code: WebhookVerificationErrorCode.MISSING_REQUIRED_FIELDS,
           message: `Missing or invalid required field: ${String(field)}`,
@@ -203,16 +203,11 @@ export class WebhookVerifierService {
   /**
    * Store webhook receipt in Redis to detect future replays.
    */
-  private async storeWebhookReceipt(
-    transactionId: string,
-    externalId: string,
-    signature: string,
-  ): Promise<void> {
+  private async storeWebhookReceipt(transactionId: string, externalId: string): Promise<void> {
     const replayKey = this.getReplayKey(transactionId, externalId);
     const receiptData = JSON.stringify({
       transactionId,
       externalId,
-      signature,
       receivedAt: new Date().toISOString(),
     });
 

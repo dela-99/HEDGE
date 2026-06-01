@@ -107,13 +107,13 @@ describe('WebhookVerifierService', () => {
     });
 
     it('should reject webhook missing amount field', async () => {
-      const dtoWithoutAmount = { ...validWebhookDto };
+      const dtoWithoutAmount = { ...validWebhookDto } as Partial<MtnWebhookDto>;
       delete dtoWithoutAmount.amount;
       const rawBody = JSON.stringify(dtoWithoutAmount);
       const signature = createHmac('sha256', webhookSecret).update(rawBody).digest('hex');
 
       await expect(
-        service.verifyWebhook(dtoWithoutAmount, rawBody, signature),
+        service.verifyWebhook(dtoWithoutAmount as MtnWebhookDto, rawBody, signature),
       ).rejects.toThrow(BadRequestException);
     });
 
@@ -127,13 +127,13 @@ describe('WebhookVerifierService', () => {
     });
 
     it('should reject webhook missing currency field', async () => {
-      const dtoWithoutCurrency = { ...validWebhookDto };
+      const dtoWithoutCurrency = { ...validWebhookDto } as Partial<MtnWebhookDto>;
       delete dtoWithoutCurrency.currency;
       const rawBody = JSON.stringify(dtoWithoutCurrency);
       const signature = createHmac('sha256', webhookSecret).update(rawBody).digest('hex');
 
       await expect(
-        service.verifyWebhook(dtoWithoutCurrency, rawBody, signature),
+        service.verifyWebhook(dtoWithoutCurrency as MtnWebhookDto, rawBody, signature),
       ).rejects.toThrow(BadRequestException);
     });
 
