@@ -1,0 +1,30 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../generated/prisma-client-payment"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model RawFinancialEvent {
+  id                   String    @id @default(uuid())
+  
+  provider             String
+  eventType            String
+  providerReference    String
+  
+  headersJson          Json
+  payloadJson          Json
+  
+  receivedAt           DateTime
+  verificationStatus   String    @default("pending")
+  
+  createdAt            DateTime  @default(now())
+  
+  @@index([providerReference])
+  @@index([provider])
+  @@index([eventType])
+  @@index([createdAt])
+}
