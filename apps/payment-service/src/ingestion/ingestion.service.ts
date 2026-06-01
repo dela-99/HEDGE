@@ -133,6 +133,7 @@ export class IngestionService {
    * Extract amount from provider payload.
    * Supports common field names: amount, value, total, transactionAmount
    * Allows zero-value transactions (validation transactions, reversals, adjustments)
+   * Validates that amount is a finite number.
    */
   private extractAmount(payload: Record<string, any>): number | null {
     const amountCandidates = ['amount', 'value', 'total', 'transactionAmount'];
@@ -141,7 +142,7 @@ export class IngestionService {
       const val = payload[field];
       if (val !== undefined && val !== null) {
         const num = Number(val);
-        if (!isNaN(num) && num >= 0) {
+        if (!isNaN(num) && isFinite(num) && num >= 0) {
           return num;
         }
       }
@@ -220,11 +221,12 @@ export class IngestionService {
 
   /**
    * Generate a deterministic candidate ID from provider and reference.
-   * Uses provider and providerReference as stable properties to ensure
-   * idempotent ID generation for the same event.
+   * Uses colon delimiter to avoid collisions when providerReference contains hyphens.
+   * Example: provider='stripe', reference='ch-123' -> 'stripe:ch-123'
+   * Ensures idempotent ID generation for the same event.
    * In case of concurrent processing, database constraints should ensure uniqueness.
    */
   private generateCandidateId(provider: string, providerReference: string): string {
-    return `${provider}-${providerReference}`;
+    return `${provider}:${providerReference}`;
   }
 }
