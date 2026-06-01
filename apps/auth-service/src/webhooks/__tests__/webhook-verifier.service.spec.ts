@@ -181,7 +181,13 @@ describe('WebhookVerifierService', () => {
     });
 
     it('should not throw if Redis audit logging fails', async () => {
-      redis.setex.mockRejectedValueOnce(new Error('Redis connection error'));
+      // Mock first two calls to succeed (replay receipt and verification audit),
+      // then the next call (which would happen in a failure scenario) can fail
+      redis.setex
+        .mockResolvedValueOnce('OK')
+        .mockResolvedValueOnce('OK')
+        .mockRejectedValueOnce(new Error('Redis connection error'));
+
       const rawBody = JSON.stringify(validWebhookDto);
       const signature = createHmac('sha256', webhookSecret).update(rawBody).digest('hex');
 
