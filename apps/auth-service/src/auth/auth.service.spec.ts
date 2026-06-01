@@ -2,10 +2,10 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { AuthService } from '../src/auth/auth.service';
-import { UsersService } from '../src/users/users.service';
-import { SessionsService } from '../src/sessions/sessions.service';
-import { AuditService } from '../src/audit/audit.service';
+import { AuthService } from './auth.service';
+import { UsersService } from '../users/users.service';
+import { SessionsService } from '../sessions/sessions.service';
+import { AuditService } from '../audit/audit.service';
 
 describe('AuthService', () => {
   let service: AuthService;

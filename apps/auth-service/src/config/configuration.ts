@@ -16,6 +16,13 @@ export interface AppConfiguration {
     accessExpiresIn: string;
     refreshExpiresIn: string;
   };
+  mtnMomo: {
+    baseUrl: string;
+    subscriptionKey: string;
+    apiUser: string;
+    apiKey: string;
+    targetEnvironment: string;
+  };
 }
 
 function requireString(env: NodeJS.ProcessEnv, key: string) {
@@ -44,6 +51,22 @@ function requireDuration(env: NodeJS.ProcessEnv, key: string) {
 
   if (!/^\d+[smhd]$/.test(value)) {
     throw new Error(`${key} must use a duration format such as 15m or 7d`);
+  }
+
+  return value;
+}
+
+function requireUrl(env: NodeJS.ProcessEnv, key: string) {
+  const value = requireString(env, key);
+
+  try {
+    const parsed = new URL(value);
+
+    if (!['http:', 'https:'].includes(parsed.protocol)) {
+      throw new Error();
+    }
+  } catch {
+    throw new Error(`${key} must be a valid http(s) URL`);
   }
 
   return value;
@@ -95,6 +118,13 @@ export function createConfiguration(env: NodeJS.ProcessEnv = process.env): AppCo
       refreshSecret: requireString(env, 'JWT_REFRESH_SECRET'),
       accessExpiresIn: requireDuration(env, 'ACCESS_TOKEN_EXPIRES'),
       refreshExpiresIn: requireDuration(env, 'REFRESH_TOKEN_EXPIRES'),
+    },
+    mtnMomo: {
+      baseUrl: requireUrl(env, 'MTN_BASE_URL'),
+      subscriptionKey: requireString(env, 'MTN_SUBSCRIPTION_KEY'),
+      apiUser: requireString(env, 'MTN_API_USER'),
+      apiKey: requireString(env, 'MTN_API_KEY'),
+      targetEnvironment: requireString(env, 'MTN_TARGET_ENVIRONMENT'),
     },
   };
 }
