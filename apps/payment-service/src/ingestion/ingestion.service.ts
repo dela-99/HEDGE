@@ -142,7 +142,7 @@ export class IngestionService {
       const val = payload[field];
       if (val !== undefined && val !== null) {
         const num = Number(val);
-        if (!isNaN(num) && isFinite(num) && num >= 0) {
+        if (isFinite(num) && num >= 0) {
           return num;
         }
       }
