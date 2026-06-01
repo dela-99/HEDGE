@@ -132,6 +132,7 @@ export class IngestionService {
   /**
    * Extract amount from provider payload.
    * Supports common field names: amount, value, total, transactionAmount
+   * Allows zero-value transactions (validation transactions, reversals, adjustments)
    */
   private extractAmount(payload: Record<string, any>): number | null {
     const amountCandidates = ['amount', 'value', 'total', 'transactionAmount'];
@@ -140,7 +141,7 @@ export class IngestionService {
       const val = payload[field];
       if (val !== undefined && val !== null) {
         const num = Number(val);
-        if (!isNaN(num) && num > 0) {
+        if (!isNaN(num) && num >= 0) {
           return num;
         }
       }
@@ -152,6 +153,8 @@ export class IngestionService {
   /**
    * Extract currency from provider payload.
    * Supports common field names: currency, currencyCode, curr
+   * Validates 3-letter format but does not verify against ISO 4217.
+   * Semantic validation of currency codes occurs in downstream services.
    */
   private extractCurrency(payload: Record<string, any>): string | null {
     const currencyCandidates = ['currency', 'currencyCode', 'curr'];
@@ -160,7 +163,7 @@ export class IngestionService {
       const val = payload[field];
       if (val && typeof val === 'string') {
         const currency = val.toUpperCase();
-        // Validate it's a 3-letter ISO currency code
+        // Validate it's a 3-letter code (format validation only)
         if (/^[A-Z]{3}$/.test(currency)) {
           return currency;
         }
@@ -172,8 +175,11 @@ export class IngestionService {
 
   /**
    * Extract transaction date from provider payload.
-   * Falls back to receivedAt if not found in payload.
    * Supports common field names: timestamp, date, transactionDate, createdAt
+   * Falls back to receivedAt if not found in payload.
+   * WARNING: Fallback uses event received time, not transaction time.
+   * This may cause discrepancies in financial reporting if transaction date
+   * is not provided by the provider.
    */
   private extractTransactionDate(
     payload: Record<string, any>,
@@ -213,9 +219,12 @@ export class IngestionService {
   }
 
   /**
-   * Generate a unique candidate ID from provider and reference.
+   * Generate a deterministic candidate ID from provider and reference.
+   * Uses provider and providerReference as stable properties to ensure
+   * idempotent ID generation for the same event.
+   * In case of concurrent processing, database constraints should ensure uniqueness.
    */
   private generateCandidateId(provider: string, providerReference: string): string {
-    return `${provider}-${providerReference}-${Date.now()}`;
+    return `${provider}-${providerReference}`;
   }
 }
