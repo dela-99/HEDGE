@@ -24,13 +24,14 @@ import {
 export class WebhookVerifierService {
   private readonly logger = new Logger(WebhookVerifierService.name);
   private readonly webhookSecret: string;
-  private readonly replayAttackTTL = 24 * 60 * 60; // 24 hours in seconds
+  private readonly replayAttackTTL: number;
 
   constructor(
     @Inject(REDIS_CLIENT) private readonly redis: Redis,
     private readonly configService: ConfigService,
   ) {
     this.webhookSecret = this.configService.getOrThrow<string>('webhooks.secret');
+    this.replayAttackTTL = this.configService.getOrThrow<number>('webhooks.replayAttackTTL');
   }
 
   /**
@@ -106,20 +107,37 @@ export class WebhookVerifierService {
    * Verify that all required fields are present in the webhook payload.
    */
   private verifyRequiredFields(dto: MtnWebhookDto): void {
-    const requiredFields: Array<keyof MtnWebhookDto> = [
+    const stringFields: Array<keyof MtnWebhookDto> = [
       'notificationType',
       'transactionId',
       'externalId',
       'status',
-      'amount',
       'currency',
     ];
 
-    for (const field of requiredFields) {
-      if (!dto[field]) {
+    const numericFields: Array<keyof MtnWebhookDto> = ['amount'];
+
+    // Check string fields
+    for (const field of stringFields) {
+      const value = dto[field];
+      if (typeof value !== 'string' || value.trim() === '') {
         const error: WebhookVerificationError = {
           code: WebhookVerificationErrorCode.MISSING_REQUIRED_FIELDS,
           message: `Missing required field: ${String(field)}`,
+          details: { field },
+        };
+        this.logger.warn(`Webhook verification failed: ${error.message}`);
+        throw new BadRequestException(error);
+      }
+    }
+
+    // Check numeric fields
+    for (const field of numericFields) {
+      const value = dto[field];
+      if (typeof value !== 'number' || value < 0) {
+        const error: WebhookVerificationError = {
+          code: WebhookVerificationErrorCode.MISSING_REQUIRED_FIELDS,
+          message: `Missing or invalid required field: ${String(field)}`,
           details: { field },
         };
         this.logger.warn(`Webhook verification failed: ${error.message}`);
@@ -158,9 +176,7 @@ export class WebhookVerifierService {
         code: WebhookVerificationErrorCode.INVALID_SIGNATURE,
         message: 'Webhook signature verification failed',
       };
-      this.logger.warn(
-        `Webhook verification failed: ${error.message} (computed: ${computed.substring(0, 8)}..., received: ${signature.substring(0, 8)}...)`,
-      );
+      this.logger.warn(`Webhook verification failed: ${error.message}`);
       throw new UnauthorizedException(error);
     }
   }

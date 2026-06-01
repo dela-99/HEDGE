@@ -20,6 +20,9 @@ describe('WebhookVerifierService', () => {
       if (key === 'webhooks.secret') {
         return webhookSecret;
       }
+      if (key === 'webhooks.replayAttackTTL') {
+        return 24 * 60 * 60; // 24 hours in seconds
+      }
       throw new Error(`Unknown config key: ${key}`);
     }),
   };
@@ -104,13 +107,23 @@ describe('WebhookVerifierService', () => {
     });
 
     it('should reject webhook missing amount field', async () => {
-      const dtoWithoutAmount = { ...validWebhookDto, amount: 0 };
+      const dtoWithoutAmount = { ...validWebhookDto };
+      delete dtoWithoutAmount.amount;
       const rawBody = JSON.stringify(dtoWithoutAmount);
       const signature = createHmac('sha256', webhookSecret).update(rawBody).digest('hex');
 
       await expect(
         service.verifyWebhook(dtoWithoutAmount, rawBody, signature),
       ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should accept webhook with zero amount', async () => {
+      const dtoWithZeroAmount = { ...validWebhookDto, amount: 0 };
+      const rawBody = JSON.stringify(dtoWithZeroAmount);
+      const signature = createHmac('sha256', webhookSecret).update(rawBody).digest('hex');
+
+      const result = await service.verifyWebhook(dtoWithZeroAmount, rawBody, signature);
+      expect(result.isValid).toBe(true);
     });
 
     it('should reject webhook missing currency field', async () => {

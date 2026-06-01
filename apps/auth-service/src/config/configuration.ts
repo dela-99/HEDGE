@@ -25,6 +25,7 @@ export interface AppConfiguration {
   };
   webhooks: {
     secret: string;
+    replayAttackTTL: number;
   };
 }
 
@@ -57,6 +58,39 @@ function requireDuration(env: NodeJS.ProcessEnv, key: string) {
   }
 
   return value;
+}
+
+function parseDurationToSeconds(duration: string): number {
+  const match = duration.match(/^(\d+)([smhd])$/);
+  if (!match) {
+    throw new Error(`Invalid duration format: ${duration}`);
+  }
+
+  const value = parseInt(match[1], 10);
+  const unit = match[2];
+
+  switch (unit) {
+    case 's':
+      return value;
+    case 'm':
+      return value * 60;
+    case 'h':
+      return value * 3600;
+    case 'd':
+      return value * 86400;
+    default:
+      return value;
+  }
+}
+
+function optionalDurationInSeconds(env: NodeJS.ProcessEnv, key: string, defaultDays: number): number {
+  const value = env[key]?.trim();
+
+  if (!value) {
+    return defaultDays * 86400;
+  }
+
+  return parseDurationToSeconds(value);
 }
 
 function requireUrl(env: NodeJS.ProcessEnv, key: string) {
@@ -132,6 +166,7 @@ export function createConfiguration(env: NodeJS.ProcessEnv = process.env): AppCo
     },
     webhooks: {
       secret: requireString(env, 'WEBHOOK_SECRET'),
+      replayAttackTTL: optionalDurationInSeconds(env, 'WEBHOOK_REPLAY_ATTACK_TTL', 1),
     },
   };
 }
