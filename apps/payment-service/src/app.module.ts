@@ -5,6 +5,7 @@ import { DatabaseModule } from './database/database.module';
 import { IngestionModule } from './ingestion/ingestion.module';
 import { RawEventsModule } from './raw-events/raw-events.module';
 import { NormalizationModule } from './normalization/normalization.module';
+import { ReconciliationModule } from './reconciliation/reconciliation.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { NormalizationModule } from './normalization/normalization.module';
     RawEventsModule,
     IngestionModule,
     NormalizationModule,
+    ReconciliationModule,
   ],
 })
 export class AppModule {}
