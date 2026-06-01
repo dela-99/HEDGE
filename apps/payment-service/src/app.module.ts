@@ -6,6 +6,8 @@ import { IngestionModule } from './ingestion/ingestion.module';
 import { RawEventsModule } from './raw-events/raw-events.module';
 import { NormalizationModule } from './normalization/normalization.module';
 import { ReconciliationModule } from './reconciliation/reconciliation.module';
+import { FraudModule } from './fraud/fraud.module';
+import { AnalyticsModule } from './analytics/analytics.module';
 
 @Module({
   imports: [
@@ -19,6 +21,8 @@ import { ReconciliationModule } from './reconciliation/reconciliation.module';
     IngestionModule,
     NormalizationModule,
     ReconciliationModule,
+    FraudModule,
+    AnalyticsModule,
   ],
 })
 export class AppModule {}
