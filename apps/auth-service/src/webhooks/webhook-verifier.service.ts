@@ -58,13 +58,10 @@ export class WebhookVerifierService {
       // Step 2: Verify signature
       this.verifySignature(rawBody, signature);
 
-      // Step 3: Check for replay attacks
+      // Step 3: Check for replay attacks and store webhook receipt atomically
       await this.checkReplayAttack(dto.transactionId, dto.externalId);
 
-      // Step 4: Store webhook receipt to prevent replays
-      await this.storeWebhookReceipt(dto.transactionId, dto.externalId);
-
-      // Step 5: Log successful verification
+      // Step 4: Log successful verification
       await this.logVerificationAudit(
         {
           transactionId: dto.transactionId,
@@ -160,6 +157,17 @@ export class WebhookVerifierService {
       throw new UnauthorizedException(error);
     }
 
+    // Expected length: 32 bytes = 64 hex characters
+    const expectedLength = 64;
+    if (signature.length !== expectedLength) {
+      const error: WebhookVerificationError = {
+        code: WebhookVerificationErrorCode.INVALID_SIGNATURE,
+        message: 'Webhook signature has invalid format',
+      };
+      this.logger.warn(`Webhook verification failed: ${error.message}`);
+      throw new UnauthorizedException(error);
+    }
+
     const computed = createHmac('sha256', this.webhookSecret)
       .update(rawBody)
       .digest('hex');
@@ -184,12 +192,21 @@ export class WebhookVerifierService {
   /**
    * Check if this webhook has been received before (replay attack detection).
    * Uses transactionId + externalId as the deduplication key.
+   * Performs atomic check-and-set using Redis SETNX to prevent race conditions.
    */
   private async checkReplayAttack(transactionId: string, externalId: string): Promise<void> {
     const replayKey = this.getReplayKey(transactionId, externalId);
-    const exists = await this.redis.exists(replayKey);
+    const receiptData = JSON.stringify({
+      transactionId,
+      externalId,
+      receivedAt: new Date().toISOString(),
+    });
 
-    if (exists) {
+    // Use SETNX to atomically check for existence and create the receipt in one operation
+    // Returns 1 if the key was set (new), 0 if the key already existed (replay)
+    const isNew = await this.redis.set(replayKey, receiptData, 'EX', this.replayAttackTTL, 'NX');
+
+    if (!isNew) {
       const error: WebhookVerificationError = {
         code: WebhookVerificationErrorCode.REPLAY_ATTACK,
         message: 'Webhook appears to be a replay (duplicate transactionId and externalId)',
@@ -198,20 +215,6 @@ export class WebhookVerifierService {
       this.logger.warn(`Webhook verification failed: ${error.message}`);
       throw new BadRequestException(error);
     }
-  }
-
-  /**
-   * Store webhook receipt in Redis to detect future replays.
-   */
-  private async storeWebhookReceipt(transactionId: string, externalId: string): Promise<void> {
-    const replayKey = this.getReplayKey(transactionId, externalId);
-    const receiptData = JSON.stringify({
-      transactionId,
-      externalId,
-      receivedAt: new Date().toISOString(),
-    });
-
-    await this.redis.setex(replayKey, this.replayAttackTTL, receiptData);
   }
 
   /**
