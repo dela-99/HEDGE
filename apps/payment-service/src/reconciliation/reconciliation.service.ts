@@ -304,7 +304,8 @@ export class ReconciliationService {
       t1.amount === t2.amount &&
       t1.currency === t2.currency &&
       t1.payerReference === t2.payerReference &&
-      t1.providerReference === t2.providerReference
+      t1.providerReference === t2.providerReference &&
+      t1.status === t2.status
     );
   }
 
