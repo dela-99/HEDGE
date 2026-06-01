@@ -74,6 +74,13 @@ export interface TransactionForFraudAnalysis {
  */
 @Injectable()
 export class FraudService {
+  // Magic number constants for fraud detection thresholds
+  private readonly DUPLICATE_WINDOW_MS = 5 * 60 * 1000; // 5 minutes
+  private readonly RAPID_ATTEMPTS_WINDOW_MS = 60 * 1000; // 1 minute
+  private readonly RAPID_ATTEMPTS_THRESHOLD = 2; // Triggers at 3 total (2 + current)
+  private readonly MIN_TRANSACTIONS_FOR_AVERAGE = 3; // Minimum sample size for meaningful average
+  private readonly UNUSUAL_AMOUNT_MULTIPLIER = 5; // Threshold multiplier: amount > 5x average
+
   /**
    * Analyze a transaction and generate fraud signals.
    *
@@ -131,8 +138,7 @@ export class FraudService {
       return null;
     }
 
-    const FIVE_MINUTES_MS = 5 * 60 * 1000;
-    const now = new Date();
+    const now = transaction.transactionDate;
 
     for (const historyTx of history) {
       // Check if same provider and reference
@@ -142,7 +148,7 @@ export class FraudService {
       ) {
         // Check if within 5 minute window
         const timeDiffMs = now.getTime() - historyTx.transactionDate.getTime();
-        if (timeDiffMs > 0 && timeDiffMs <= FIVE_MINUTES_MS) {
+        if (timeDiffMs > 0 && timeDiffMs <= this.DUPLICATE_WINDOW_MS) {
           // Check if same amount
           if (historyTx.amount === transaction.amount) {
             return {
@@ -211,13 +217,13 @@ export class FraudService {
         (tx) => tx.currency === transaction.currency,
       );
 
-      if (recentTransactions.length >= 3) {
+      if (recentTransactions.length >= this.MIN_TRANSACTIONS_FOR_AVERAGE) {
         const avgAmount =
           recentTransactions.reduce((sum, tx) => sum + tx.amount, 0) /
           recentTransactions.length;
 
-        // Flag if amount is more than 5x the average
-        const threshold = avgAmount * 5;
+        // Flag if amount exceeds 5x the average
+        const threshold = avgAmount * this.UNUSUAL_AMOUNT_MULTIPLIER;
         if (transaction.amount > threshold) {
           return {
             signalType: FraudSignalType.UNUSUAL_AMOUNT,
@@ -256,8 +262,7 @@ export class FraudService {
       return null;
     }
 
-    const ONE_MINUTE_MS = 60 * 1000;
-    const now = new Date();
+    const now = transaction.transactionDate;
 
     // Count transactions from the same payer in the last minute
     const recentAttempts = history.filter((historyTx) => {
@@ -266,11 +271,11 @@ export class FraudService {
       }
 
       const timeDiffMs = now.getTime() - historyTx.transactionDate.getTime();
-      return timeDiffMs > 0 && timeDiffMs <= ONE_MINUTE_MS;
+      return timeDiffMs > 0 && timeDiffMs <= this.RAPID_ATTEMPTS_WINDOW_MS;
     });
 
-    // Flag if 3 or more attempts in 1 minute
-    if (recentAttempts.length >= 2) {
+    // Flag if 3 or more attempts total (2 in history + current)
+    if (recentAttempts.length >= this.RAPID_ATTEMPTS_THRESHOLD) {
       return {
         signalType: FraudSignalType.RAPID_REPEATED_ATTEMPTS,
         description: `Rapid repeated attempts detected: ${recentAttempts.length + 1} transactions from payer ${transaction.payerReference} within 1 minute`,
