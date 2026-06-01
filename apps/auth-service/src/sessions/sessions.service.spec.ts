@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UnauthorizedException } from '@nestjs/common';
-import { SessionsService } from '../src/sessions/sessions.service';
-import { PrismaService } from '../src/prisma/prisma.service';
-import { REDIS_CLIENT } from '../src/database/database.constants';
+import { SessionsService } from './sessions.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { REDIS_CLIENT } from '../database/database.constants';
 import Redis from 'ioredis';
 
 describe('SessionsService', () => {

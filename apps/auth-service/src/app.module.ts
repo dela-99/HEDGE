@@ -7,6 +7,7 @@ import { validateEnv } from './config/env.validation';
 import { AuthModule } from './auth/auth.module';
 import { AuditModule } from './audit/audit.module';
 import { DatabaseModule } from './database/database.module';
+import { MtnMomoModule } from './mtn-momo/mtn-momo.module';
 import { SessionsModule } from './sessions/sessions.module';
 import { UsersModule } from './users/users.module';
 
@@ -21,6 +22,7 @@ import { UsersModule } from './users/users.module';
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 100 }]),
     DatabaseModule,
     AuthModule,
+    MtnMomoModule,
     UsersModule,
     SessionsModule,
     AuditModule,
