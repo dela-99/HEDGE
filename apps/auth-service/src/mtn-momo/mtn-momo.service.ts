@@ -1,4 +1,4 @@
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { HttpException, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'node:crypto';
 import { MtnWebhookDto } from './dto/mtn-webhook.dto';
@@ -22,9 +22,10 @@ export class MtnMomoService {
     }
 
     const tokenResponse = await this.requestToken();
+    const refreshBufferSeconds = Math.min(30, Math.max(Math.floor(tokenResponse.expires_in * 0.1), 1));
     this.cachedToken = {
       token: tokenResponse.access_token,
-      expiresAt: Date.now() + Math.max(tokenResponse.expires_in - 30, 1) * 1000,
+      expiresAt: Date.now() + Math.max(tokenResponse.expires_in - refreshBufferSeconds, 1) * 1000,
     };
 
     return this.cachedToken.token;
@@ -32,6 +33,7 @@ export class MtnMomoService {
 
   async request<TResponse>(path: string, options: MtnApiRequestOptions = {}): Promise<TResponse> {
     const headers = await this.buildHeaders(options.includeAuth ?? true, options.headers);
+    const requestUrl = new URL(path, this.normalizedBaseUrl());
     const requestInit: RequestInit = {
       method: options.method ?? 'GET',
       headers,
@@ -46,8 +48,8 @@ export class MtnMomoService {
       headers.set('X-Reference-Id', options.referenceId ?? randomUUID());
     }
 
-    const response = await fetch(new URL(path, this.normalizedBaseUrl()), requestInit);
-    return this.handleResponse<TResponse>(response);
+    const response = await fetch(requestUrl, requestInit);
+    return this.handleResponse<TResponse>(response, requestInit.method ?? 'GET', requestUrl);
   }
 
   acceptWebhook(webhook: MtnWebhookDto): MtnWebhookAck {
@@ -70,11 +72,7 @@ export class MtnMomoService {
       }),
     });
 
-    if (!response.ok) {
-      throw new UnauthorizedException(`MTN authentication failed with status ${response.status}`);
-    }
-
-    return this.handleResponse<MtnAccessTokenResponse>(response);
+    return this.handleResponse<MtnAccessTokenResponse>(response, 'POST', new URL('/oauth/token', this.normalizedBaseUrl()));
   }
 
   private async buildHeaders(includeAuth: boolean, extraHeaders?: Record<string, string>) {
@@ -98,11 +96,14 @@ export class MtnMomoService {
     return Boolean(method && ['POST', 'PUT', 'PATCH'].includes(method.toUpperCase()));
   }
 
-  private async handleResponse<TResponse>(response: Response): Promise<TResponse> {
+  private async handleResponse<TResponse>(response: Response, method: string, url: URL): Promise<TResponse> {
     const text = await response.text();
 
     if (!response.ok) {
-      throw new UnauthorizedException(text || `MTN request failed with status ${response.status}`);
+      throw new HttpException(
+        text || `MTN request failed: ${method} ${url.toString()} returned status ${response.status}`,
+        response.status,
+      );
     }
 
     return text ? (JSON.parse(text) as TResponse) : (undefined as TResponse);

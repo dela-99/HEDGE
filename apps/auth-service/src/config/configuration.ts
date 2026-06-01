@@ -58,15 +58,16 @@ function requireDuration(env: NodeJS.ProcessEnv, key: string) {
 
 function requireUrl(env: NodeJS.ProcessEnv, key: string) {
   const value = requireString(env, key);
+  let parsed: URL;
 
   try {
-    const parsed = new URL(value);
-
-    if (!['http:', 'https:'].includes(parsed.protocol)) {
-      throw new Error();
-    }
+    parsed = new URL(value);
   } catch {
     throw new Error(`${key} must be a valid http(s) URL`);
+  }
+
+  if (!['http:', 'https:'].includes(parsed.protocol)) {
+    throw new Error(`${key} must use the http or https protocol`);
   }
 
   return value;
