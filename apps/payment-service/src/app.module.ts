@@ -4,6 +4,7 @@ import configuration from './config/configuration';
 import { DatabaseModule } from './database/database.module';
 import { IngestionModule } from './ingestion/ingestion.module';
 import { RawEventsModule } from './raw-events/raw-events.module';
+import { NormalizationModule } from './normalization/normalization.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { RawEventsModule } from './raw-events/raw-events.module';
     DatabaseModule,
     RawEventsModule,
     IngestionModule,
+    NormalizationModule,
   ],
 })
 export class AppModule {}
