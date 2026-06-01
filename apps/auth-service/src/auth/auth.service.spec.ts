@@ -6,6 +6,12 @@ import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
 import { SessionsService } from '../sessions/sessions.service';
 import { AuditService } from '../audit/audit.service';
+import * as argon2 from 'argon2';
+
+jest.mock('argon2', () => ({
+  hash: jest.fn().mockResolvedValue('mocked-hash'),
+  verify: jest.fn().mockResolvedValue(true),
+}));
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -25,13 +31,17 @@ describe('AuthService', () => {
     id: 'session-id-123',
     userId: 'user-id-123',
     refreshTokenHash: 'hashed-token',
-    revokedAt: null,
+    revoked: false,
     expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    ipAddress: '127.0.0.1',
+    deviceInfo: 'Mozilla/5.0',
+    lastActiveAt: new Date(),
+    createdAt: new Date(),
   };
 
   const mockContext = {
     ipAddress: '127.0.0.1',
-    userAgent: 'Mozilla/5.0',
+    deviceInfo: 'Mozilla/5.0',
   };
 
   beforeEach(async () => {
@@ -42,24 +52,29 @@ describe('AuthService', () => {
           provide: UsersService,
           useValue: {
             createUser: jest.fn(),
-            findByEmailWithPassword: jest.fn(),
+            findByEmail: jest.fn(),
             findById: jest.fn(),
+            updateLastLogin: jest.fn(),
           },
         },
         {
           provide: SessionsService,
           useValue: {
             createSession: jest.fn(),
-            storeRefreshToken: jest.fn(),
-            assertActiveSession: jest.fn(),
-            rotateRefreshToken: jest.fn(),
             revokeSession: jest.fn(),
+            revokeAllUserSessions: jest.fn(),
+            findSessionById: jest.fn(),
+            findSessionByRefreshToken: jest.fn(),
+            updateSessionActivity: jest.fn(),
           },
         },
         {
           provide: AuditService,
           useValue: {
-            record: jest.fn(),
+            logSignup: jest.fn(),
+            logLogin: jest.fn(),
+            logLogout: jest.fn(),
+            logRefresh: jest.fn(),
           },
         },
         {
@@ -75,8 +90,8 @@ describe('AuthService', () => {
               const config: Record<string, any> = {
                 'jwt.accessSecret': 'test-secret',
                 'jwt.refreshSecret': 'test-refresh-secret',
-                'jwt.accessTtl': '15m',
-                'jwt.refreshTtl': '7d',
+                'jwt.accessExpiresIn': '15m',
+                'jwt.refreshExpiresIn': '7d',
               };
               return config[key];
             }),
@@ -98,6 +113,7 @@ describe('AuthService', () => {
       jest.spyOn(usersService, 'createUser').mockResolvedValue(mockUser as any);
       jest.spyOn(sessionsService, 'createSession').mockResolvedValue(mockSession as any);
       jest.spyOn(jwtService, 'signAsync').mockResolvedValue('token');
+      jest.spyOn(usersService, 'updateLastLogin').mockResolvedValue(undefined);
 
       const result = await service.register(
         {
@@ -113,9 +129,9 @@ describe('AuthService', () => {
       expect(result).toHaveProperty('sessionId');
       expect(usersService.createUser).toHaveBeenCalled();
       expect(sessionsService.createSession).toHaveBeenCalled();
-      expect(auditService.record).toHaveBeenCalledWith(
+      expect(auditService.logSignup).toHaveBeenCalledWith(
         expect.objectContaining({
-          action: 'auth.register',
+          actorId: mockUser.id,
         })
       );
     });
@@ -127,6 +143,7 @@ describe('AuthService', () => {
       } as any);
       jest.spyOn(sessionsService, 'createSession').mockResolvedValue(mockSession as any);
       jest.spyOn(jwtService, 'signAsync').mockResolvedValue('token');
+      jest.spyOn(usersService, 'updateLastLogin').mockResolvedValue(undefined);
 
       const result = await service.register(
         {
@@ -142,7 +159,7 @@ describe('AuthService', () => {
 
   describe('validateUser', () => {
     it('should return user if credentials are valid', async () => {
-      jest.spyOn(usersService, 'findByEmailWithPassword').mockResolvedValue({
+      jest.spyOn(usersService, 'findByEmail').mockResolvedValue({
         ...mockUser,
         passwordHash: 'hashed-password',
       } as any);
@@ -150,12 +167,27 @@ describe('AuthService', () => {
       const result = await service.validateUser('test@example.com', 'password123');
 
       expect(result).toBeDefined();
+      expect(result?.email).toBe('test@example.com');
+      expect(usersService.findByEmail).toHaveBeenCalledWith('test@example.com');
     });
 
     it('should return null if user not found', async () => {
-      jest.spyOn(usersService, 'findByEmailWithPassword').mockResolvedValue(null);
+      jest.spyOn(usersService, 'findByEmail').mockResolvedValue(null);
 
       const result = await service.validateUser('nonexistent@example.com', 'password123');
+
+      expect(result).toBeNull();
+      expect(usersService.findByEmail).toHaveBeenCalledWith('nonexistent@example.com');
+    });
+
+    it('should return null if password is invalid', async () => {
+      (argon2.verify as jest.Mock).mockResolvedValueOnce(false);
+      jest.spyOn(usersService, 'findByEmail').mockResolvedValue({
+        ...mockUser,
+        passwordHash: 'hashed-password',
+      } as any);
+
+      const result = await service.validateUser('test@example.com', 'invalid-password');
 
       expect(result).toBeNull();
     });
@@ -165,15 +197,16 @@ describe('AuthService', () => {
     it('should issue tokens on successful login', async () => {
       jest.spyOn(sessionsService, 'createSession').mockResolvedValue(mockSession as any);
       jest.spyOn(jwtService, 'signAsync').mockResolvedValue('token');
+      jest.spyOn(usersService, 'updateLastLogin').mockResolvedValue(undefined);
 
       const result = await service.login(mockUser as any, mockContext);
 
       expect(result).toHaveProperty('user');
       expect(result).toHaveProperty('accessToken');
       expect(result).toHaveProperty('refreshToken');
-      expect(auditService.record).toHaveBeenCalledWith(
+      expect(auditService.logLogin).toHaveBeenCalledWith(
         expect.objectContaining({
-          action: 'auth.login',
+          actorId: mockUser.id,
         })
       );
     });
@@ -185,22 +218,22 @@ describe('AuthService', () => {
         sub: 'user-id-123',
         email: 'test@example.com',
         role: 'USER',
-        sid: 'session-id-123',
       };
 
-      jest.spyOn(sessionsService, 'assertActiveSession').mockResolvedValue(mockSession as any);
+      jest.spyOn(sessionsService, 'findSessionByRefreshToken').mockResolvedValue(mockSession as any);
       jest.spyOn(usersService, 'findById').mockResolvedValue(mockUser as any);
       jest.spyOn(jwtService, 'signAsync').mockResolvedValue('new-token');
+      jest.spyOn(sessionsService, 'updateSessionActivity').mockResolvedValue(mockSession as any);
 
-      const result = await service.refreshTokens(payload, 'refresh-token', mockContext);
+      const result = await service.refreshTokens(payload as any, 'refresh-token', mockContext);
 
       expect(result).toHaveProperty('user');
       expect(result).toHaveProperty('accessToken');
       expect(result).toHaveProperty('refreshToken');
-      expect(sessionsService.rotateRefreshToken).toHaveBeenCalled();
-      expect(auditService.record).toHaveBeenCalledWith(
+      expect(sessionsService.updateSessionActivity).toHaveBeenCalled();
+      expect(auditService.logRefresh).toHaveBeenCalledWith(
         expect.objectContaining({
-          action: 'auth.refresh',
+          actorId: mockUser.id,
         })
       );
     });
@@ -210,15 +243,14 @@ describe('AuthService', () => {
         sub: 'user-id-123',
         email: 'test@example.com',
         role: 'USER',
-        sid: 'session-id-123',
       };
 
       jest
-        .spyOn(sessionsService, 'assertActiveSession')
-        .mockRejectedValue(new UnauthorizedException('Session is not active'));
+        .spyOn(sessionsService, 'findSessionByRefreshToken')
+        .mockResolvedValue(null);
 
       await expect(
-        service.refreshTokens(payload, 'refresh-token', mockContext)
+        service.refreshTokens(payload as any, 'refresh-token', mockContext)
       ).rejects.toThrow(UnauthorizedException);
     });
   });
@@ -229,18 +261,18 @@ describe('AuthService', () => {
         sub: 'user-id-123',
         email: 'test@example.com',
         role: 'USER',
-        sid: 'session-id-123',
       };
 
-      jest.spyOn(sessionsService, 'revokeSession').mockResolvedValue(undefined);
+      jest.spyOn(sessionsService, 'findSessionByRefreshToken').mockResolvedValue(mockSession as any);
+      jest.spyOn(sessionsService, 'revokeSession').mockResolvedValue(mockSession as any);
 
-      const result = await service.logout(payload);
+      const result = await service.logout(payload as any, mockContext, 'refresh-token');
 
       expect(result.success).toBe(true);
-      expect(sessionsService.revokeSession).toHaveBeenCalledWith('session-id-123');
-      expect(auditService.record).toHaveBeenCalledWith(
+      expect(sessionsService.revokeSession).toHaveBeenCalledWith(mockSession.id);
+      expect(auditService.logLogout).toHaveBeenCalledWith(
         expect.objectContaining({
-          action: 'auth.logout',
+          actorId: payload.sub,
         })
       );
     });

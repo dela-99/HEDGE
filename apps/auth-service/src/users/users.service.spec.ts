@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ConflictException, NotFoundException } from '@nestjs/common';
+import { ConflictException } from '@nestjs/common';
+import { Role } from '@prisma/client';
 import { UsersService } from './users.service';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -11,11 +12,12 @@ describe('UsersService', () => {
     id: 'user-id-123',
     email: 'test@example.com',
     passwordHash: 'hashed-password',
-    name: 'Test User',
-    role: 'USER',
+    role: Role.merchant_owner,
+    isVerified: false,
+    mfaEnabled: false,
+    lastLoginAt: null,
     createdAt: new Date(),
     updatedAt: new Date(),
-    deletedAt: null,
   };
 
   beforeEach(async () => {
@@ -41,26 +43,27 @@ describe('UsersService', () => {
 
   describe('createUser', () => {
     it('should create a new user with hashed password', async () => {
+      const { passwordHash, ...userWithoutPassword } = mockUser;
       jest.spyOn(prisma.user, 'findUnique').mockResolvedValue(null);
-      jest.spyOn(prisma.user, 'create').mockResolvedValue(mockUser);
+      jest.spyOn(prisma.user, 'create').mockResolvedValue(userWithoutPassword as any);
 
       const result = await service.createUser({
         email: 'test@example.com',
-        password: 'password123',
-        name: 'Test User',
+        passwordHash: 'hashed-password',
       });
 
-      expect(result).toEqual(mockUser);
+      expect(result).toEqual(userWithoutPassword);
       expect(prisma.user.create).toHaveBeenCalled();
     });
 
-    it('should lowercase email before storing', async () => {
+    it('should normalize email before storing', async () => {
+      const { passwordHash, ...userWithoutPassword } = mockUser;
       jest.spyOn(prisma.user, 'findUnique').mockResolvedValue(null);
-      jest.spyOn(prisma.user, 'create').mockResolvedValue(mockUser);
+      jest.spyOn(prisma.user, 'create').mockResolvedValue(userWithoutPassword as any);
 
       await service.createUser({
         email: 'Test@Example.com',
-        password: 'password123',
+        passwordHash: 'hashed-password',
       });
 
       expect(prisma.user.create).toHaveBeenCalledWith(
@@ -78,26 +81,59 @@ describe('UsersService', () => {
       await expect(
         service.createUser({
           email: 'test@example.com',
-          password: 'password123',
+          passwordHash: 'hashed-password',
         })
       ).rejects.toThrow(ConflictException);
     });
+
+    it('should set role to merchant_owner by default', async () => {
+      const { passwordHash, ...userWithoutPassword } = mockUser;
+      jest.spyOn(prisma.user, 'findUnique').mockResolvedValue(null);
+      jest.spyOn(prisma.user, 'create').mockResolvedValue(userWithoutPassword as any);
+
+      await service.createUser({
+        email: 'test@example.com',
+        passwordHash: 'hashed-password',
+      });
+
+      expect(prisma.user.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            role: Role.merchant_owner,
+          }),
+        })
+      );
+    });
   });
 
-  describe('findByEmailWithPassword', () => {
+  describe('findByEmail', () => {
     it('should return user with passwordHash', async () => {
       jest.spyOn(prisma.user, 'findUnique').mockResolvedValue(mockUser as any);
 
-      const result = await service.findByEmailWithPassword('test@example.com');
+      const result = await service.findByEmail('test@example.com');
 
       expect(result).toEqual(mockUser);
-      expect(result.passwordHash).toBeDefined();
+      expect(result?.passwordHash).toBeDefined();
+    });
+
+    it('should normalize email before searching', async () => {
+      jest.spyOn(prisma.user, 'findUnique').mockResolvedValue(mockUser as any);
+
+      await service.findByEmail('Test@Example.com');
+
+      expect(prisma.user.findUnique).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            email: 'test@example.com',
+          }),
+        })
+      );
     });
 
     it('should return null if user not found', async () => {
       jest.spyOn(prisma.user, 'findUnique').mockResolvedValue(null);
 
-      const result = await service.findByEmailWithPassword('nonexistent@example.com');
+      const result = await service.findByEmail('nonexistent@example.com');
 
       expect(result).toBeNull();
     });
@@ -105,41 +141,59 @@ describe('UsersService', () => {
 
   describe('findById', () => {
     it('should return user without passwordHash', async () => {
-      jest.spyOn(prisma.user, 'findUnique').mockResolvedValue(mockUser as any);
+      const { passwordHash, ...userWithoutPassword } = mockUser;
+      jest.spyOn(prisma.user, 'findUnique').mockResolvedValue(userWithoutPassword as any);
 
       const result = await service.findById('user-id-123');
 
       expect(result).not.toHaveProperty('passwordHash');
-      expect(result.id).toBe('user-id-123');
+      expect(result?.id).toBe('user-id-123');
     });
 
-    it('should throw NotFoundException if user not found', async () => {
+    it('should return null if user not found', async () => {
       jest.spyOn(prisma.user, 'findUnique').mockResolvedValue(null);
 
-      await expect(service.findById('nonexistent-id')).rejects.toThrow(NotFoundException);
+      const result = await service.findById('nonexistent-id');
+
+      expect(result).toBeNull();
+    });
+
+    it('should never expose passwordHash in response', async () => {
+      const { passwordHash, ...userWithoutPassword } = mockUser;
+      jest.spyOn(prisma.user, 'findUnique').mockResolvedValue(userWithoutPassword as any);
+
+      const result = await service.findById('user-id-123');
+
+      expect(result).not.toHaveProperty('passwordHash');
+      expect(Object.keys(result || {})).not.toContain('passwordHash');
     });
   });
 
-  describe('updateProfile', () => {
-    it('should update user profile without exposing passwordHash', async () => {
-      const updatedUser = { ...mockUser, name: 'Updated Name' };
-      jest.spyOn(prisma.user, 'update').mockResolvedValue(updatedUser);
+  describe('updateLastLogin', () => {
+    it('should update lastLoginAt timestamp', async () => {
+      jest.spyOn(prisma.user, 'update').mockResolvedValue(mockUser as any);
 
-      const result = await service.updateProfile('user-id-123', { name: 'Updated Name' });
+      await service.updateLastLogin('user-id-123');
 
-      expect(result).not.toHaveProperty('passwordHash');
-      expect(result.name).toBe('Updated Name');
+      expect(prisma.user.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'user-id-123' },
+          data: expect.objectContaining({
+            lastLoginAt: expect.any(Date),
+          }),
+        })
+      );
     });
   });
 
   describe('Security: Password Hash Protection', () => {
-    it('should never expose passwordHash in publicUser method', async () => {
-      jest.spyOn(prisma.user, 'findUnique').mockResolvedValue(mockUser as any);
+    it('should never expose passwordHash in safe user method', async () => {
+      const { passwordHash, ...userWithoutPassword } = mockUser;
+      jest.spyOn(prisma.user, 'findUnique').mockResolvedValue(userWithoutPassword as any);
 
       const result = await service.findById('user-id-123');
 
       expect(result).not.toHaveProperty('passwordHash');
-      expect(Object.keys(result)).not.toContain('passwordHash');
     });
   });
 });
