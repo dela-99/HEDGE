@@ -23,6 +23,9 @@ export interface AppConfiguration {
     apiKey: string;
     targetEnvironment: string;
   };
+  webhooks: {
+    secret: string;
+  };
 }
 
 function requireString(env: NodeJS.ProcessEnv, key: string) {
@@ -126,6 +129,9 @@ export function createConfiguration(env: NodeJS.ProcessEnv = process.env): AppCo
       apiUser: requireString(env, 'MTN_API_USER'),
       apiKey: requireString(env, 'MTN_API_KEY'),
       targetEnvironment: requireString(env, 'MTN_TARGET_ENVIRONMENT'),
+    },
+    webhooks: {
+      secret: requireString(env, 'WEBHOOK_SECRET'),
     },
   };
 }
