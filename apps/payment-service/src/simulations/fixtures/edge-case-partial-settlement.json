@@ -1,0 +1,23 @@
+{
+  "provider": "mtn",
+  "eventType": "payment.partialsettled",
+  "providerReference": "PARTIAL-SETTLE-001",
+  "receivedAt": "2026-06-01T16:00:00Z",
+  "payloadJson": {
+    "transactionId": "PARTIAL-SETTLE-001",
+    "amount": 2000.00,
+    "settledAmount": 1500.00,
+    "unsettledAmount": 500.00,
+    "currency": "USD",
+    "status": "PARTIALSETTLED",
+    "timestamp": "2026-06-01T16:00:00Z",
+    "externalId": "PAYER-PARTIAL-001",
+    "description": "Payment with partial settlement",
+    "settlementPercentage": 75.0
+  },
+  "headersJson": {
+    "x-mtn-signature": "valid-signature-partial",
+    "content-type": "application/json",
+    "x-webhook-id": "webhook-partial-001"
+  }
+}

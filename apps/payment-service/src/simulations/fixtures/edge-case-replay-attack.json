@@ -1,0 +1,22 @@
+{
+  "provider": "mtn",
+  "eventType": "payment.completed",
+  "providerReference": "REPLAY-ATTACK-001",
+  "receivedAt": "2026-06-01T19:00:00Z",
+  "payloadJson": {
+    "transactionId": "REPLAY-ATTACK-001",
+    "amount": 5000.00,
+    "currency": "USD",
+    "status": "SUCCESSFUL",
+    "timestamp": "2026-06-01T19:00:00Z",
+    "externalId": "PAYER-REPLAY-ATTACK",
+    "description": "Payment subject to replay attack attempt",
+    "nonce": "nonce-12345"
+  },
+  "headersJson": {
+    "x-mtn-signature": "valid-signature-replay",
+    "content-type": "application/json",
+    "x-webhook-id": "webhook-replay-001",
+    "x-timestamp": "2026-06-01T19:00:00Z"
+  }
+}
