@@ -11,6 +11,7 @@ import { AnalyticsModule } from './analytics/analytics.module';
 import { SimulationModule } from './simulations/simulation.module';
 import { MerchantModule } from './merchant/merchant.module';
 import { LinkedAccountsModule } from './linked-accounts/linked-accounts.module';
+import { TeamModule } from './team/team.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { LinkedAccountsModule } from './linked-accounts/linked-accounts.module';
     SimulationModule,
     MerchantModule,
     LinkedAccountsModule,
+    TeamModule,
   ],
 })
 export class AppModule {}

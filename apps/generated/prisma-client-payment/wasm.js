@@ -142,6 +142,15 @@ exports.Prisma.BusinessScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.BusinessMemberScalarFieldEnum = {
+  id: 'id',
+  businessId: 'businessId',
+  userId: 'userId',
+  role: 'role',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.LinkedAccountScalarFieldEnum = {
   id: 'id',
   merchantId: 'merchantId',
@@ -189,6 +198,14 @@ exports.Prisma.JsonNullValueFilter = {
   JsonNull: Prisma.JsonNull,
   AnyNull: Prisma.AnyNull
 };
+exports.BusinessRole = exports.$Enums.BusinessRole = {
+  OWNER: 'OWNER',
+  ADMIN: 'ADMIN',
+  FINANCE_MANAGER: 'FINANCE_MANAGER',
+  ANALYST: 'ANALYST',
+  VIEWER: 'VIEWER'
+};
+
 exports.PaymentProvider = exports.$Enums.PaymentProvider = {
   MTN_MOMO: 'MTN_MOMO',
   AIRTEL: 'AIRTEL',
@@ -207,6 +224,7 @@ exports.LinkedAccountStatus = exports.$Enums.LinkedAccountStatus = {
 exports.Prisma.ModelName = {
   Merchant: 'Merchant',
   Business: 'Business',
+  BusinessMember: 'BusinessMember',
   LinkedAccount: 'LinkedAccount',
   RawFinancialEvent: 'RawFinancialEvent'
 };

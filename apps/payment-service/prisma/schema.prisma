@@ -32,6 +32,7 @@ model Business {
   merchantId           String
   merchant             Merchant  @relation(fields: [merchantId], references: [id], onDelete: Cascade)
   linkedAccounts       LinkedAccount[]
+  members              BusinessMember[]
   
   name                 String
   businessType         String
@@ -44,6 +45,33 @@ model Business {
   
   @@index([merchantId])
   @@index([isActive])
+  @@index([createdAt])
+}
+
+enum BusinessRole {
+  OWNER
+  ADMIN
+  FINANCE_MANAGER
+  ANALYST
+  VIEWER
+}
+
+model BusinessMember {
+  id                   String       @id @default(uuid())
+
+  businessId           String
+  business             Business     @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  userId               String
+  role                 BusinessRole @default(VIEWER)
+
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+
+  @@unique([businessId, userId])
+  @@index([businessId])
+  @@index([userId])
+  @@index([role])
   @@index([createdAt])
 }
 

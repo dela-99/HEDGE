@@ -24,6 +24,11 @@ export type Merchant = $Result.DefaultSelection<Prisma.$MerchantPayload>
  */
 export type Business = $Result.DefaultSelection<Prisma.$BusinessPayload>
 /**
+ * Model BusinessMember
+ * 
+ */
+export type BusinessMember = $Result.DefaultSelection<Prisma.$BusinessMemberPayload>
+/**
  * Model LinkedAccount
  * 
  */
@@ -38,7 +43,18 @@ export type RawFinancialEvent = $Result.DefaultSelection<Prisma.$RawFinancialEve
  * Enums
  */
 export namespace $Enums {
-  export const PaymentProvider: {
+  export const BusinessRole: {
+  OWNER: 'OWNER',
+  ADMIN: 'ADMIN',
+  FINANCE_MANAGER: 'FINANCE_MANAGER',
+  ANALYST: 'ANALYST',
+  VIEWER: 'VIEWER'
+};
+
+export type BusinessRole = (typeof BusinessRole)[keyof typeof BusinessRole]
+
+
+export const PaymentProvider: {
   MTN_MOMO: 'MTN_MOMO',
   AIRTEL: 'AIRTEL',
   VODAFONE: 'VODAFONE',
@@ -59,6 +75,10 @@ export const LinkedAccountStatus: {
 export type LinkedAccountStatus = (typeof LinkedAccountStatus)[keyof typeof LinkedAccountStatus]
 
 }
+
+export type BusinessRole = $Enums.BusinessRole
+
+export const BusinessRole: typeof $Enums.BusinessRole
 
 export type PaymentProvider = $Enums.PaymentProvider
 
@@ -210,6 +230,16 @@ export class PrismaClient<
     * ```
     */
   get business(): Prisma.BusinessDelegate<ExtArgs>;
+
+  /**
+   * `prisma.businessMember`: Exposes CRUD operations for the **BusinessMember** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more BusinessMembers
+    * const businessMembers = await prisma.businessMember.findMany()
+    * ```
+    */
+  get businessMember(): Prisma.BusinessMemberDelegate<ExtArgs>;
 
   /**
    * `prisma.linkedAccount`: Exposes CRUD operations for the **LinkedAccount** model.
@@ -673,6 +703,7 @@ export namespace Prisma {
   export const ModelName: {
     Merchant: 'Merchant',
     Business: 'Business',
+    BusinessMember: 'BusinessMember',
     LinkedAccount: 'LinkedAccount',
     RawFinancialEvent: 'RawFinancialEvent'
   };
@@ -690,7 +721,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "merchant" | "business" | "linkedAccount" | "rawFinancialEvent"
+      modelProps: "merchant" | "business" | "businessMember" | "linkedAccount" | "rawFinancialEvent"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -831,6 +862,76 @@ export namespace Prisma {
           count: {
             args: Prisma.BusinessCountArgs<ExtArgs>
             result: $Utils.Optional<BusinessCountAggregateOutputType> | number
+          }
+        }
+      }
+      BusinessMember: {
+        payload: Prisma.$BusinessMemberPayload<ExtArgs>
+        fields: Prisma.BusinessMemberFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.BusinessMemberFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BusinessMemberPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.BusinessMemberFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BusinessMemberPayload>
+          }
+          findFirst: {
+            args: Prisma.BusinessMemberFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BusinessMemberPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.BusinessMemberFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BusinessMemberPayload>
+          }
+          findMany: {
+            args: Prisma.BusinessMemberFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BusinessMemberPayload>[]
+          }
+          create: {
+            args: Prisma.BusinessMemberCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BusinessMemberPayload>
+          }
+          createMany: {
+            args: Prisma.BusinessMemberCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.BusinessMemberCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BusinessMemberPayload>[]
+          }
+          delete: {
+            args: Prisma.BusinessMemberDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BusinessMemberPayload>
+          }
+          update: {
+            args: Prisma.BusinessMemberUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BusinessMemberPayload>
+          }
+          deleteMany: {
+            args: Prisma.BusinessMemberDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.BusinessMemberUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.BusinessMemberUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BusinessMemberPayload>
+          }
+          aggregate: {
+            args: Prisma.BusinessMemberAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateBusinessMember>
+          }
+          groupBy: {
+            args: Prisma.BusinessMemberGroupByArgs<ExtArgs>
+            result: $Utils.Optional<BusinessMemberGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.BusinessMemberCountArgs<ExtArgs>
+            result: $Utils.Optional<BusinessMemberCountAggregateOutputType> | number
           }
         }
       }
@@ -1176,10 +1277,12 @@ export namespace Prisma {
 
   export type BusinessCountOutputType = {
     linkedAccounts: number
+    members: number
   }
 
   export type BusinessCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     linkedAccounts?: boolean | BusinessCountOutputTypeCountLinkedAccountsArgs
+    members?: boolean | BusinessCountOutputTypeCountMembersArgs
   }
 
   // Custom InputTypes
@@ -1198,6 +1301,13 @@ export namespace Prisma {
    */
   export type BusinessCountOutputTypeCountLinkedAccountsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: LinkedAccountWhereInput
+  }
+
+  /**
+   * BusinessCountOutputType without action
+   */
+  export type BusinessCountOutputTypeCountMembersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: BusinessMemberWhereInput
   }
 
 
@@ -2379,6 +2489,7 @@ export namespace Prisma {
     updatedAt?: boolean
     merchant?: boolean | MerchantDefaultArgs<ExtArgs>
     linkedAccounts?: boolean | Business$linkedAccountsArgs<ExtArgs>
+    members?: boolean | Business$membersArgs<ExtArgs>
     _count?: boolean | BusinessCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["business"]>
 
@@ -2408,6 +2519,7 @@ export namespace Prisma {
   export type BusinessInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     merchant?: boolean | MerchantDefaultArgs<ExtArgs>
     linkedAccounts?: boolean | Business$linkedAccountsArgs<ExtArgs>
+    members?: boolean | Business$membersArgs<ExtArgs>
     _count?: boolean | BusinessCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type BusinessIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -2419,6 +2531,7 @@ export namespace Prisma {
     objects: {
       merchant: Prisma.$MerchantPayload<ExtArgs>
       linkedAccounts: Prisma.$LinkedAccountPayload<ExtArgs>[]
+      members: Prisma.$BusinessMemberPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -2795,6 +2908,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     merchant<T extends MerchantDefaultArgs<ExtArgs> = {}>(args?: Subset<T, MerchantDefaultArgs<ExtArgs>>): Prisma__MerchantClient<$Result.GetResult<Prisma.$MerchantPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
     linkedAccounts<T extends Business$linkedAccountsArgs<ExtArgs> = {}>(args?: Subset<T, Business$linkedAccountsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LinkedAccountPayload<ExtArgs>, T, "findMany"> | Null>
+    members<T extends Business$membersArgs<ExtArgs> = {}>(args?: Subset<T, Business$membersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BusinessMemberPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3170,6 +3284,26 @@ export namespace Prisma {
   }
 
   /**
+   * Business.members
+   */
+  export type Business$membersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BusinessMember
+     */
+    select?: BusinessMemberSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BusinessMemberInclude<ExtArgs> | null
+    where?: BusinessMemberWhereInput
+    orderBy?: BusinessMemberOrderByWithRelationInput | BusinessMemberOrderByWithRelationInput[]
+    cursor?: BusinessMemberWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: BusinessMemberScalarFieldEnum | BusinessMemberScalarFieldEnum[]
+  }
+
+  /**
    * Business without action
    */
   export type BusinessDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -3181,6 +3315,951 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: BusinessInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model BusinessMember
+   */
+
+  export type AggregateBusinessMember = {
+    _count: BusinessMemberCountAggregateOutputType | null
+    _min: BusinessMemberMinAggregateOutputType | null
+    _max: BusinessMemberMaxAggregateOutputType | null
+  }
+
+  export type BusinessMemberMinAggregateOutputType = {
+    id: string | null
+    businessId: string | null
+    userId: string | null
+    role: $Enums.BusinessRole | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type BusinessMemberMaxAggregateOutputType = {
+    id: string | null
+    businessId: string | null
+    userId: string | null
+    role: $Enums.BusinessRole | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type BusinessMemberCountAggregateOutputType = {
+    id: number
+    businessId: number
+    userId: number
+    role: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type BusinessMemberMinAggregateInputType = {
+    id?: true
+    businessId?: true
+    userId?: true
+    role?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type BusinessMemberMaxAggregateInputType = {
+    id?: true
+    businessId?: true
+    userId?: true
+    role?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type BusinessMemberCountAggregateInputType = {
+    id?: true
+    businessId?: true
+    userId?: true
+    role?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type BusinessMemberAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which BusinessMember to aggregate.
+     */
+    where?: BusinessMemberWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BusinessMembers to fetch.
+     */
+    orderBy?: BusinessMemberOrderByWithRelationInput | BusinessMemberOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: BusinessMemberWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BusinessMembers from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BusinessMembers.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned BusinessMembers
+    **/
+    _count?: true | BusinessMemberCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: BusinessMemberMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: BusinessMemberMaxAggregateInputType
+  }
+
+  export type GetBusinessMemberAggregateType<T extends BusinessMemberAggregateArgs> = {
+        [P in keyof T & keyof AggregateBusinessMember]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateBusinessMember[P]>
+      : GetScalarType<T[P], AggregateBusinessMember[P]>
+  }
+
+
+
+
+  export type BusinessMemberGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: BusinessMemberWhereInput
+    orderBy?: BusinessMemberOrderByWithAggregationInput | BusinessMemberOrderByWithAggregationInput[]
+    by: BusinessMemberScalarFieldEnum[] | BusinessMemberScalarFieldEnum
+    having?: BusinessMemberScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: BusinessMemberCountAggregateInputType | true
+    _min?: BusinessMemberMinAggregateInputType
+    _max?: BusinessMemberMaxAggregateInputType
+  }
+
+  export type BusinessMemberGroupByOutputType = {
+    id: string
+    businessId: string
+    userId: string
+    role: $Enums.BusinessRole
+    createdAt: Date
+    updatedAt: Date
+    _count: BusinessMemberCountAggregateOutputType | null
+    _min: BusinessMemberMinAggregateOutputType | null
+    _max: BusinessMemberMaxAggregateOutputType | null
+  }
+
+  type GetBusinessMemberGroupByPayload<T extends BusinessMemberGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<BusinessMemberGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof BusinessMemberGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], BusinessMemberGroupByOutputType[P]>
+            : GetScalarType<T[P], BusinessMemberGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type BusinessMemberSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    businessId?: boolean
+    userId?: boolean
+    role?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    business?: boolean | BusinessDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["businessMember"]>
+
+  export type BusinessMemberSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    businessId?: boolean
+    userId?: boolean
+    role?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    business?: boolean | BusinessDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["businessMember"]>
+
+  export type BusinessMemberSelectScalar = {
+    id?: boolean
+    businessId?: boolean
+    userId?: boolean
+    role?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type BusinessMemberInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    business?: boolean | BusinessDefaultArgs<ExtArgs>
+  }
+  export type BusinessMemberIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    business?: boolean | BusinessDefaultArgs<ExtArgs>
+  }
+
+  export type $BusinessMemberPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "BusinessMember"
+    objects: {
+      business: Prisma.$BusinessPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      businessId: string
+      userId: string
+      role: $Enums.BusinessRole
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["businessMember"]>
+    composites: {}
+  }
+
+  type BusinessMemberGetPayload<S extends boolean | null | undefined | BusinessMemberDefaultArgs> = $Result.GetResult<Prisma.$BusinessMemberPayload, S>
+
+  type BusinessMemberCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<BusinessMemberFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: BusinessMemberCountAggregateInputType | true
+    }
+
+  export interface BusinessMemberDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['BusinessMember'], meta: { name: 'BusinessMember' } }
+    /**
+     * Find zero or one BusinessMember that matches the filter.
+     * @param {BusinessMemberFindUniqueArgs} args - Arguments to find a BusinessMember
+     * @example
+     * // Get one BusinessMember
+     * const businessMember = await prisma.businessMember.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends BusinessMemberFindUniqueArgs>(args: SelectSubset<T, BusinessMemberFindUniqueArgs<ExtArgs>>): Prisma__BusinessMemberClient<$Result.GetResult<Prisma.$BusinessMemberPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one BusinessMember that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {BusinessMemberFindUniqueOrThrowArgs} args - Arguments to find a BusinessMember
+     * @example
+     * // Get one BusinessMember
+     * const businessMember = await prisma.businessMember.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends BusinessMemberFindUniqueOrThrowArgs>(args: SelectSubset<T, BusinessMemberFindUniqueOrThrowArgs<ExtArgs>>): Prisma__BusinessMemberClient<$Result.GetResult<Prisma.$BusinessMemberPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first BusinessMember that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BusinessMemberFindFirstArgs} args - Arguments to find a BusinessMember
+     * @example
+     * // Get one BusinessMember
+     * const businessMember = await prisma.businessMember.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends BusinessMemberFindFirstArgs>(args?: SelectSubset<T, BusinessMemberFindFirstArgs<ExtArgs>>): Prisma__BusinessMemberClient<$Result.GetResult<Prisma.$BusinessMemberPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first BusinessMember that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BusinessMemberFindFirstOrThrowArgs} args - Arguments to find a BusinessMember
+     * @example
+     * // Get one BusinessMember
+     * const businessMember = await prisma.businessMember.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends BusinessMemberFindFirstOrThrowArgs>(args?: SelectSubset<T, BusinessMemberFindFirstOrThrowArgs<ExtArgs>>): Prisma__BusinessMemberClient<$Result.GetResult<Prisma.$BusinessMemberPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more BusinessMembers that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BusinessMemberFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all BusinessMembers
+     * const businessMembers = await prisma.businessMember.findMany()
+     * 
+     * // Get first 10 BusinessMembers
+     * const businessMembers = await prisma.businessMember.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const businessMemberWithIdOnly = await prisma.businessMember.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends BusinessMemberFindManyArgs>(args?: SelectSubset<T, BusinessMemberFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BusinessMemberPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a BusinessMember.
+     * @param {BusinessMemberCreateArgs} args - Arguments to create a BusinessMember.
+     * @example
+     * // Create one BusinessMember
+     * const BusinessMember = await prisma.businessMember.create({
+     *   data: {
+     *     // ... data to create a BusinessMember
+     *   }
+     * })
+     * 
+     */
+    create<T extends BusinessMemberCreateArgs>(args: SelectSubset<T, BusinessMemberCreateArgs<ExtArgs>>): Prisma__BusinessMemberClient<$Result.GetResult<Prisma.$BusinessMemberPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many BusinessMembers.
+     * @param {BusinessMemberCreateManyArgs} args - Arguments to create many BusinessMembers.
+     * @example
+     * // Create many BusinessMembers
+     * const businessMember = await prisma.businessMember.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends BusinessMemberCreateManyArgs>(args?: SelectSubset<T, BusinessMemberCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many BusinessMembers and returns the data saved in the database.
+     * @param {BusinessMemberCreateManyAndReturnArgs} args - Arguments to create many BusinessMembers.
+     * @example
+     * // Create many BusinessMembers
+     * const businessMember = await prisma.businessMember.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many BusinessMembers and only return the `id`
+     * const businessMemberWithIdOnly = await prisma.businessMember.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends BusinessMemberCreateManyAndReturnArgs>(args?: SelectSubset<T, BusinessMemberCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BusinessMemberPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a BusinessMember.
+     * @param {BusinessMemberDeleteArgs} args - Arguments to delete one BusinessMember.
+     * @example
+     * // Delete one BusinessMember
+     * const BusinessMember = await prisma.businessMember.delete({
+     *   where: {
+     *     // ... filter to delete one BusinessMember
+     *   }
+     * })
+     * 
+     */
+    delete<T extends BusinessMemberDeleteArgs>(args: SelectSubset<T, BusinessMemberDeleteArgs<ExtArgs>>): Prisma__BusinessMemberClient<$Result.GetResult<Prisma.$BusinessMemberPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one BusinessMember.
+     * @param {BusinessMemberUpdateArgs} args - Arguments to update one BusinessMember.
+     * @example
+     * // Update one BusinessMember
+     * const businessMember = await prisma.businessMember.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends BusinessMemberUpdateArgs>(args: SelectSubset<T, BusinessMemberUpdateArgs<ExtArgs>>): Prisma__BusinessMemberClient<$Result.GetResult<Prisma.$BusinessMemberPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more BusinessMembers.
+     * @param {BusinessMemberDeleteManyArgs} args - Arguments to filter BusinessMembers to delete.
+     * @example
+     * // Delete a few BusinessMembers
+     * const { count } = await prisma.businessMember.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends BusinessMemberDeleteManyArgs>(args?: SelectSubset<T, BusinessMemberDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more BusinessMembers.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BusinessMemberUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many BusinessMembers
+     * const businessMember = await prisma.businessMember.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends BusinessMemberUpdateManyArgs>(args: SelectSubset<T, BusinessMemberUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one BusinessMember.
+     * @param {BusinessMemberUpsertArgs} args - Arguments to update or create a BusinessMember.
+     * @example
+     * // Update or create a BusinessMember
+     * const businessMember = await prisma.businessMember.upsert({
+     *   create: {
+     *     // ... data to create a BusinessMember
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the BusinessMember we want to update
+     *   }
+     * })
+     */
+    upsert<T extends BusinessMemberUpsertArgs>(args: SelectSubset<T, BusinessMemberUpsertArgs<ExtArgs>>): Prisma__BusinessMemberClient<$Result.GetResult<Prisma.$BusinessMemberPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of BusinessMembers.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BusinessMemberCountArgs} args - Arguments to filter BusinessMembers to count.
+     * @example
+     * // Count the number of BusinessMembers
+     * const count = await prisma.businessMember.count({
+     *   where: {
+     *     // ... the filter for the BusinessMembers we want to count
+     *   }
+     * })
+    **/
+    count<T extends BusinessMemberCountArgs>(
+      args?: Subset<T, BusinessMemberCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], BusinessMemberCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a BusinessMember.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BusinessMemberAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends BusinessMemberAggregateArgs>(args: Subset<T, BusinessMemberAggregateArgs>): Prisma.PrismaPromise<GetBusinessMemberAggregateType<T>>
+
+    /**
+     * Group by BusinessMember.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BusinessMemberGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends BusinessMemberGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: BusinessMemberGroupByArgs['orderBy'] }
+        : { orderBy?: BusinessMemberGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, BusinessMemberGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetBusinessMemberGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the BusinessMember model
+   */
+  readonly fields: BusinessMemberFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for BusinessMember.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__BusinessMemberClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    business<T extends BusinessDefaultArgs<ExtArgs> = {}>(args?: Subset<T, BusinessDefaultArgs<ExtArgs>>): Prisma__BusinessClient<$Result.GetResult<Prisma.$BusinessPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the BusinessMember model
+   */ 
+  interface BusinessMemberFieldRefs {
+    readonly id: FieldRef<"BusinessMember", 'String'>
+    readonly businessId: FieldRef<"BusinessMember", 'String'>
+    readonly userId: FieldRef<"BusinessMember", 'String'>
+    readonly role: FieldRef<"BusinessMember", 'BusinessRole'>
+    readonly createdAt: FieldRef<"BusinessMember", 'DateTime'>
+    readonly updatedAt: FieldRef<"BusinessMember", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * BusinessMember findUnique
+   */
+  export type BusinessMemberFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BusinessMember
+     */
+    select?: BusinessMemberSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BusinessMemberInclude<ExtArgs> | null
+    /**
+     * Filter, which BusinessMember to fetch.
+     */
+    where: BusinessMemberWhereUniqueInput
+  }
+
+  /**
+   * BusinessMember findUniqueOrThrow
+   */
+  export type BusinessMemberFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BusinessMember
+     */
+    select?: BusinessMemberSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BusinessMemberInclude<ExtArgs> | null
+    /**
+     * Filter, which BusinessMember to fetch.
+     */
+    where: BusinessMemberWhereUniqueInput
+  }
+
+  /**
+   * BusinessMember findFirst
+   */
+  export type BusinessMemberFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BusinessMember
+     */
+    select?: BusinessMemberSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BusinessMemberInclude<ExtArgs> | null
+    /**
+     * Filter, which BusinessMember to fetch.
+     */
+    where?: BusinessMemberWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BusinessMembers to fetch.
+     */
+    orderBy?: BusinessMemberOrderByWithRelationInput | BusinessMemberOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for BusinessMembers.
+     */
+    cursor?: BusinessMemberWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BusinessMembers from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BusinessMembers.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of BusinessMembers.
+     */
+    distinct?: BusinessMemberScalarFieldEnum | BusinessMemberScalarFieldEnum[]
+  }
+
+  /**
+   * BusinessMember findFirstOrThrow
+   */
+  export type BusinessMemberFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BusinessMember
+     */
+    select?: BusinessMemberSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BusinessMemberInclude<ExtArgs> | null
+    /**
+     * Filter, which BusinessMember to fetch.
+     */
+    where?: BusinessMemberWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BusinessMembers to fetch.
+     */
+    orderBy?: BusinessMemberOrderByWithRelationInput | BusinessMemberOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for BusinessMembers.
+     */
+    cursor?: BusinessMemberWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BusinessMembers from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BusinessMembers.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of BusinessMembers.
+     */
+    distinct?: BusinessMemberScalarFieldEnum | BusinessMemberScalarFieldEnum[]
+  }
+
+  /**
+   * BusinessMember findMany
+   */
+  export type BusinessMemberFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BusinessMember
+     */
+    select?: BusinessMemberSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BusinessMemberInclude<ExtArgs> | null
+    /**
+     * Filter, which BusinessMembers to fetch.
+     */
+    where?: BusinessMemberWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BusinessMembers to fetch.
+     */
+    orderBy?: BusinessMemberOrderByWithRelationInput | BusinessMemberOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing BusinessMembers.
+     */
+    cursor?: BusinessMemberWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BusinessMembers from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BusinessMembers.
+     */
+    skip?: number
+    distinct?: BusinessMemberScalarFieldEnum | BusinessMemberScalarFieldEnum[]
+  }
+
+  /**
+   * BusinessMember create
+   */
+  export type BusinessMemberCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BusinessMember
+     */
+    select?: BusinessMemberSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BusinessMemberInclude<ExtArgs> | null
+    /**
+     * The data needed to create a BusinessMember.
+     */
+    data: XOR<BusinessMemberCreateInput, BusinessMemberUncheckedCreateInput>
+  }
+
+  /**
+   * BusinessMember createMany
+   */
+  export type BusinessMemberCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many BusinessMembers.
+     */
+    data: BusinessMemberCreateManyInput | BusinessMemberCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * BusinessMember createManyAndReturn
+   */
+  export type BusinessMemberCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BusinessMember
+     */
+    select?: BusinessMemberSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many BusinessMembers.
+     */
+    data: BusinessMemberCreateManyInput | BusinessMemberCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BusinessMemberIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * BusinessMember update
+   */
+  export type BusinessMemberUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BusinessMember
+     */
+    select?: BusinessMemberSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BusinessMemberInclude<ExtArgs> | null
+    /**
+     * The data needed to update a BusinessMember.
+     */
+    data: XOR<BusinessMemberUpdateInput, BusinessMemberUncheckedUpdateInput>
+    /**
+     * Choose, which BusinessMember to update.
+     */
+    where: BusinessMemberWhereUniqueInput
+  }
+
+  /**
+   * BusinessMember updateMany
+   */
+  export type BusinessMemberUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update BusinessMembers.
+     */
+    data: XOR<BusinessMemberUpdateManyMutationInput, BusinessMemberUncheckedUpdateManyInput>
+    /**
+     * Filter which BusinessMembers to update
+     */
+    where?: BusinessMemberWhereInput
+  }
+
+  /**
+   * BusinessMember upsert
+   */
+  export type BusinessMemberUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BusinessMember
+     */
+    select?: BusinessMemberSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BusinessMemberInclude<ExtArgs> | null
+    /**
+     * The filter to search for the BusinessMember to update in case it exists.
+     */
+    where: BusinessMemberWhereUniqueInput
+    /**
+     * In case the BusinessMember found by the `where` argument doesn't exist, create a new BusinessMember with this data.
+     */
+    create: XOR<BusinessMemberCreateInput, BusinessMemberUncheckedCreateInput>
+    /**
+     * In case the BusinessMember was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<BusinessMemberUpdateInput, BusinessMemberUncheckedUpdateInput>
+  }
+
+  /**
+   * BusinessMember delete
+   */
+  export type BusinessMemberDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BusinessMember
+     */
+    select?: BusinessMemberSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BusinessMemberInclude<ExtArgs> | null
+    /**
+     * Filter which BusinessMember to delete.
+     */
+    where: BusinessMemberWhereUniqueInput
+  }
+
+  /**
+   * BusinessMember deleteMany
+   */
+  export type BusinessMemberDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which BusinessMembers to delete
+     */
+    where?: BusinessMemberWhereInput
+  }
+
+  /**
+   * BusinessMember without action
+   */
+  export type BusinessMemberDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BusinessMember
+     */
+    select?: BusinessMemberSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BusinessMemberInclude<ExtArgs> | null
   }
 
 
@@ -5117,6 +6196,18 @@ export namespace Prisma {
   export type BusinessScalarFieldEnum = (typeof BusinessScalarFieldEnum)[keyof typeof BusinessScalarFieldEnum]
 
 
+  export const BusinessMemberScalarFieldEnum: {
+    id: 'id',
+    businessId: 'businessId',
+    userId: 'userId',
+    role: 'role',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type BusinessMemberScalarFieldEnum = (typeof BusinessMemberScalarFieldEnum)[keyof typeof BusinessMemberScalarFieldEnum]
+
+
   export const LinkedAccountScalarFieldEnum: {
     id: 'id',
     merchantId: 'merchantId',
@@ -5223,6 +6314,20 @@ export namespace Prisma {
    * Reference to a field of type 'DateTime[]'
    */
   export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'BusinessRole'
+   */
+  export type EnumBusinessRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BusinessRole'>
+    
+
+
+  /**
+   * Reference to a field of type 'BusinessRole[]'
+   */
+  export type ListEnumBusinessRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BusinessRole[]'>
     
 
 
@@ -5355,6 +6460,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"Business"> | Date | string
     merchant?: XOR<MerchantRelationFilter, MerchantWhereInput>
     linkedAccounts?: LinkedAccountListRelationFilter
+    members?: BusinessMemberListRelationFilter
   }
 
   export type BusinessOrderByWithRelationInput = {
@@ -5368,6 +6474,7 @@ export namespace Prisma {
     updatedAt?: SortOrder
     merchant?: MerchantOrderByWithRelationInput
     linkedAccounts?: LinkedAccountOrderByRelationAggregateInput
+    members?: BusinessMemberOrderByRelationAggregateInput
   }
 
   export type BusinessWhereUniqueInput = Prisma.AtLeast<{
@@ -5384,6 +6491,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"Business"> | Date | string
     merchant?: XOR<MerchantRelationFilter, MerchantWhereInput>
     linkedAccounts?: LinkedAccountListRelationFilter
+    members?: BusinessMemberListRelationFilter
   }, "id">
 
   export type BusinessOrderByWithAggregationInput = {
@@ -5412,6 +6520,67 @@ export namespace Prisma {
     isActive?: BoolWithAggregatesFilter<"Business"> | boolean
     createdAt?: DateTimeWithAggregatesFilter<"Business"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Business"> | Date | string
+  }
+
+  export type BusinessMemberWhereInput = {
+    AND?: BusinessMemberWhereInput | BusinessMemberWhereInput[]
+    OR?: BusinessMemberWhereInput[]
+    NOT?: BusinessMemberWhereInput | BusinessMemberWhereInput[]
+    id?: StringFilter<"BusinessMember"> | string
+    businessId?: StringFilter<"BusinessMember"> | string
+    userId?: StringFilter<"BusinessMember"> | string
+    role?: EnumBusinessRoleFilter<"BusinessMember"> | $Enums.BusinessRole
+    createdAt?: DateTimeFilter<"BusinessMember"> | Date | string
+    updatedAt?: DateTimeFilter<"BusinessMember"> | Date | string
+    business?: XOR<BusinessRelationFilter, BusinessWhereInput>
+  }
+
+  export type BusinessMemberOrderByWithRelationInput = {
+    id?: SortOrder
+    businessId?: SortOrder
+    userId?: SortOrder
+    role?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    business?: BusinessOrderByWithRelationInput
+  }
+
+  export type BusinessMemberWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    businessId_userId?: BusinessMemberBusinessIdUserIdCompoundUniqueInput
+    AND?: BusinessMemberWhereInput | BusinessMemberWhereInput[]
+    OR?: BusinessMemberWhereInput[]
+    NOT?: BusinessMemberWhereInput | BusinessMemberWhereInput[]
+    businessId?: StringFilter<"BusinessMember"> | string
+    userId?: StringFilter<"BusinessMember"> | string
+    role?: EnumBusinessRoleFilter<"BusinessMember"> | $Enums.BusinessRole
+    createdAt?: DateTimeFilter<"BusinessMember"> | Date | string
+    updatedAt?: DateTimeFilter<"BusinessMember"> | Date | string
+    business?: XOR<BusinessRelationFilter, BusinessWhereInput>
+  }, "id" | "businessId_userId">
+
+  export type BusinessMemberOrderByWithAggregationInput = {
+    id?: SortOrder
+    businessId?: SortOrder
+    userId?: SortOrder
+    role?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: BusinessMemberCountOrderByAggregateInput
+    _max?: BusinessMemberMaxOrderByAggregateInput
+    _min?: BusinessMemberMinOrderByAggregateInput
+  }
+
+  export type BusinessMemberScalarWhereWithAggregatesInput = {
+    AND?: BusinessMemberScalarWhereWithAggregatesInput | BusinessMemberScalarWhereWithAggregatesInput[]
+    OR?: BusinessMemberScalarWhereWithAggregatesInput[]
+    NOT?: BusinessMemberScalarWhereWithAggregatesInput | BusinessMemberScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"BusinessMember"> | string
+    businessId?: StringWithAggregatesFilter<"BusinessMember"> | string
+    userId?: StringWithAggregatesFilter<"BusinessMember"> | string
+    role?: EnumBusinessRoleWithAggregatesFilter<"BusinessMember"> | $Enums.BusinessRole
+    createdAt?: DateTimeWithAggregatesFilter<"BusinessMember"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"BusinessMember"> | Date | string
   }
 
   export type LinkedAccountWhereInput = {
@@ -5641,6 +6810,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     merchant: MerchantCreateNestedOneWithoutBusinessesInput
     linkedAccounts?: LinkedAccountCreateNestedManyWithoutBusinessInput
+    members?: BusinessMemberCreateNestedManyWithoutBusinessInput
   }
 
   export type BusinessUncheckedCreateInput = {
@@ -5653,6 +6823,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     linkedAccounts?: LinkedAccountUncheckedCreateNestedManyWithoutBusinessInput
+    members?: BusinessMemberUncheckedCreateNestedManyWithoutBusinessInput
   }
 
   export type BusinessUpdateInput = {
@@ -5665,6 +6836,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     merchant?: MerchantUpdateOneRequiredWithoutBusinessesNestedInput
     linkedAccounts?: LinkedAccountUpdateManyWithoutBusinessNestedInput
+    members?: BusinessMemberUpdateManyWithoutBusinessNestedInput
   }
 
   export type BusinessUncheckedUpdateInput = {
@@ -5677,6 +6849,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     linkedAccounts?: LinkedAccountUncheckedUpdateManyWithoutBusinessNestedInput
+    members?: BusinessMemberUncheckedUpdateManyWithoutBusinessNestedInput
   }
 
   export type BusinessCreateManyInput = {
@@ -5707,6 +6880,68 @@ export namespace Prisma {
     businessType?: StringFieldUpdateOperationsInput | string
     registrationNumber?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BusinessMemberCreateInput = {
+    id?: string
+    userId: string
+    role?: $Enums.BusinessRole
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    business: BusinessCreateNestedOneWithoutMembersInput
+  }
+
+  export type BusinessMemberUncheckedCreateInput = {
+    id?: string
+    businessId: string
+    userId: string
+    role?: $Enums.BusinessRole
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type BusinessMemberUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    role?: EnumBusinessRoleFieldUpdateOperationsInput | $Enums.BusinessRole
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    business?: BusinessUpdateOneRequiredWithoutMembersNestedInput
+  }
+
+  export type BusinessMemberUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    businessId?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    role?: EnumBusinessRoleFieldUpdateOperationsInput | $Enums.BusinessRole
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BusinessMemberCreateManyInput = {
+    id?: string
+    businessId: string
+    userId: string
+    role?: $Enums.BusinessRole
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type BusinessMemberUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    role?: EnumBusinessRoleFieldUpdateOperationsInput | $Enums.BusinessRole
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BusinessMemberUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    businessId?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    role?: EnumBusinessRoleFieldUpdateOperationsInput | $Enums.BusinessRole
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -6008,9 +7243,19 @@ export namespace Prisma {
     isNot?: MerchantWhereInput
   }
 
+  export type BusinessMemberListRelationFilter = {
+    every?: BusinessMemberWhereInput
+    some?: BusinessMemberWhereInput
+    none?: BusinessMemberWhereInput
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
+  }
+
+  export type BusinessMemberOrderByRelationAggregateInput = {
+    _count?: SortOrder
   }
 
   export type BusinessCountOrderByAggregateInput = {
@@ -6064,6 +7309,60 @@ export namespace Prisma {
     _max?: NestedStringNullableFilter<$PrismaModel>
   }
 
+  export type EnumBusinessRoleFilter<$PrismaModel = never> = {
+    equals?: $Enums.BusinessRole | EnumBusinessRoleFieldRefInput<$PrismaModel>
+    in?: $Enums.BusinessRole[] | ListEnumBusinessRoleFieldRefInput<$PrismaModel>
+    notIn?: $Enums.BusinessRole[] | ListEnumBusinessRoleFieldRefInput<$PrismaModel>
+    not?: NestedEnumBusinessRoleFilter<$PrismaModel> | $Enums.BusinessRole
+  }
+
+  export type BusinessRelationFilter = {
+    is?: BusinessWhereInput
+    isNot?: BusinessWhereInput
+  }
+
+  export type BusinessMemberBusinessIdUserIdCompoundUniqueInput = {
+    businessId: string
+    userId: string
+  }
+
+  export type BusinessMemberCountOrderByAggregateInput = {
+    id?: SortOrder
+    businessId?: SortOrder
+    userId?: SortOrder
+    role?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type BusinessMemberMaxOrderByAggregateInput = {
+    id?: SortOrder
+    businessId?: SortOrder
+    userId?: SortOrder
+    role?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type BusinessMemberMinOrderByAggregateInput = {
+    id?: SortOrder
+    businessId?: SortOrder
+    userId?: SortOrder
+    role?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EnumBusinessRoleWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.BusinessRole | EnumBusinessRoleFieldRefInput<$PrismaModel>
+    in?: $Enums.BusinessRole[] | ListEnumBusinessRoleFieldRefInput<$PrismaModel>
+    notIn?: $Enums.BusinessRole[] | ListEnumBusinessRoleFieldRefInput<$PrismaModel>
+    not?: NestedEnumBusinessRoleWithAggregatesFilter<$PrismaModel> | $Enums.BusinessRole
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumBusinessRoleFilter<$PrismaModel>
+    _max?: NestedEnumBusinessRoleFilter<$PrismaModel>
+  }
+
   export type EnumPaymentProviderFilter<$PrismaModel = never> = {
     equals?: $Enums.PaymentProvider | EnumPaymentProviderFieldRefInput<$PrismaModel>
     in?: $Enums.PaymentProvider[] | ListEnumPaymentProviderFieldRefInput<$PrismaModel>
@@ -6076,11 +7375,6 @@ export namespace Prisma {
     in?: $Enums.LinkedAccountStatus[] | ListEnumLinkedAccountStatusFieldRefInput<$PrismaModel>
     notIn?: $Enums.LinkedAccountStatus[] | ListEnumLinkedAccountStatusFieldRefInput<$PrismaModel>
     not?: NestedEnumLinkedAccountStatusFilter<$PrismaModel> | $Enums.LinkedAccountStatus
-  }
-
-  export type BusinessRelationFilter = {
-    is?: BusinessWhereInput
-    isNot?: BusinessWhereInput
   }
 
   export type LinkedAccountProviderProviderAccountIdCompoundUniqueInput = {
@@ -6329,11 +7623,25 @@ export namespace Prisma {
     connect?: LinkedAccountWhereUniqueInput | LinkedAccountWhereUniqueInput[]
   }
 
+  export type BusinessMemberCreateNestedManyWithoutBusinessInput = {
+    create?: XOR<BusinessMemberCreateWithoutBusinessInput, BusinessMemberUncheckedCreateWithoutBusinessInput> | BusinessMemberCreateWithoutBusinessInput[] | BusinessMemberUncheckedCreateWithoutBusinessInput[]
+    connectOrCreate?: BusinessMemberCreateOrConnectWithoutBusinessInput | BusinessMemberCreateOrConnectWithoutBusinessInput[]
+    createMany?: BusinessMemberCreateManyBusinessInputEnvelope
+    connect?: BusinessMemberWhereUniqueInput | BusinessMemberWhereUniqueInput[]
+  }
+
   export type LinkedAccountUncheckedCreateNestedManyWithoutBusinessInput = {
     create?: XOR<LinkedAccountCreateWithoutBusinessInput, LinkedAccountUncheckedCreateWithoutBusinessInput> | LinkedAccountCreateWithoutBusinessInput[] | LinkedAccountUncheckedCreateWithoutBusinessInput[]
     connectOrCreate?: LinkedAccountCreateOrConnectWithoutBusinessInput | LinkedAccountCreateOrConnectWithoutBusinessInput[]
     createMany?: LinkedAccountCreateManyBusinessInputEnvelope
     connect?: LinkedAccountWhereUniqueInput | LinkedAccountWhereUniqueInput[]
+  }
+
+  export type BusinessMemberUncheckedCreateNestedManyWithoutBusinessInput = {
+    create?: XOR<BusinessMemberCreateWithoutBusinessInput, BusinessMemberUncheckedCreateWithoutBusinessInput> | BusinessMemberCreateWithoutBusinessInput[] | BusinessMemberUncheckedCreateWithoutBusinessInput[]
+    connectOrCreate?: BusinessMemberCreateOrConnectWithoutBusinessInput | BusinessMemberCreateOrConnectWithoutBusinessInput[]
+    createMany?: BusinessMemberCreateManyBusinessInputEnvelope
+    connect?: BusinessMemberWhereUniqueInput | BusinessMemberWhereUniqueInput[]
   }
 
   export type NullableStringFieldUpdateOperationsInput = {
@@ -6362,6 +7670,20 @@ export namespace Prisma {
     deleteMany?: LinkedAccountScalarWhereInput | LinkedAccountScalarWhereInput[]
   }
 
+  export type BusinessMemberUpdateManyWithoutBusinessNestedInput = {
+    create?: XOR<BusinessMemberCreateWithoutBusinessInput, BusinessMemberUncheckedCreateWithoutBusinessInput> | BusinessMemberCreateWithoutBusinessInput[] | BusinessMemberUncheckedCreateWithoutBusinessInput[]
+    connectOrCreate?: BusinessMemberCreateOrConnectWithoutBusinessInput | BusinessMemberCreateOrConnectWithoutBusinessInput[]
+    upsert?: BusinessMemberUpsertWithWhereUniqueWithoutBusinessInput | BusinessMemberUpsertWithWhereUniqueWithoutBusinessInput[]
+    createMany?: BusinessMemberCreateManyBusinessInputEnvelope
+    set?: BusinessMemberWhereUniqueInput | BusinessMemberWhereUniqueInput[]
+    disconnect?: BusinessMemberWhereUniqueInput | BusinessMemberWhereUniqueInput[]
+    delete?: BusinessMemberWhereUniqueInput | BusinessMemberWhereUniqueInput[]
+    connect?: BusinessMemberWhereUniqueInput | BusinessMemberWhereUniqueInput[]
+    update?: BusinessMemberUpdateWithWhereUniqueWithoutBusinessInput | BusinessMemberUpdateWithWhereUniqueWithoutBusinessInput[]
+    updateMany?: BusinessMemberUpdateManyWithWhereWithoutBusinessInput | BusinessMemberUpdateManyWithWhereWithoutBusinessInput[]
+    deleteMany?: BusinessMemberScalarWhereInput | BusinessMemberScalarWhereInput[]
+  }
+
   export type LinkedAccountUncheckedUpdateManyWithoutBusinessNestedInput = {
     create?: XOR<LinkedAccountCreateWithoutBusinessInput, LinkedAccountUncheckedCreateWithoutBusinessInput> | LinkedAccountCreateWithoutBusinessInput[] | LinkedAccountUncheckedCreateWithoutBusinessInput[]
     connectOrCreate?: LinkedAccountCreateOrConnectWithoutBusinessInput | LinkedAccountCreateOrConnectWithoutBusinessInput[]
@@ -6374,6 +7696,38 @@ export namespace Prisma {
     update?: LinkedAccountUpdateWithWhereUniqueWithoutBusinessInput | LinkedAccountUpdateWithWhereUniqueWithoutBusinessInput[]
     updateMany?: LinkedAccountUpdateManyWithWhereWithoutBusinessInput | LinkedAccountUpdateManyWithWhereWithoutBusinessInput[]
     deleteMany?: LinkedAccountScalarWhereInput | LinkedAccountScalarWhereInput[]
+  }
+
+  export type BusinessMemberUncheckedUpdateManyWithoutBusinessNestedInput = {
+    create?: XOR<BusinessMemberCreateWithoutBusinessInput, BusinessMemberUncheckedCreateWithoutBusinessInput> | BusinessMemberCreateWithoutBusinessInput[] | BusinessMemberUncheckedCreateWithoutBusinessInput[]
+    connectOrCreate?: BusinessMemberCreateOrConnectWithoutBusinessInput | BusinessMemberCreateOrConnectWithoutBusinessInput[]
+    upsert?: BusinessMemberUpsertWithWhereUniqueWithoutBusinessInput | BusinessMemberUpsertWithWhereUniqueWithoutBusinessInput[]
+    createMany?: BusinessMemberCreateManyBusinessInputEnvelope
+    set?: BusinessMemberWhereUniqueInput | BusinessMemberWhereUniqueInput[]
+    disconnect?: BusinessMemberWhereUniqueInput | BusinessMemberWhereUniqueInput[]
+    delete?: BusinessMemberWhereUniqueInput | BusinessMemberWhereUniqueInput[]
+    connect?: BusinessMemberWhereUniqueInput | BusinessMemberWhereUniqueInput[]
+    update?: BusinessMemberUpdateWithWhereUniqueWithoutBusinessInput | BusinessMemberUpdateWithWhereUniqueWithoutBusinessInput[]
+    updateMany?: BusinessMemberUpdateManyWithWhereWithoutBusinessInput | BusinessMemberUpdateManyWithWhereWithoutBusinessInput[]
+    deleteMany?: BusinessMemberScalarWhereInput | BusinessMemberScalarWhereInput[]
+  }
+
+  export type BusinessCreateNestedOneWithoutMembersInput = {
+    create?: XOR<BusinessCreateWithoutMembersInput, BusinessUncheckedCreateWithoutMembersInput>
+    connectOrCreate?: BusinessCreateOrConnectWithoutMembersInput
+    connect?: BusinessWhereUniqueInput
+  }
+
+  export type EnumBusinessRoleFieldUpdateOperationsInput = {
+    set?: $Enums.BusinessRole
+  }
+
+  export type BusinessUpdateOneRequiredWithoutMembersNestedInput = {
+    create?: XOR<BusinessCreateWithoutMembersInput, BusinessUncheckedCreateWithoutMembersInput>
+    connectOrCreate?: BusinessCreateOrConnectWithoutMembersInput
+    upsert?: BusinessUpsertWithoutMembersInput
+    connect?: BusinessWhereUniqueInput
+    update?: XOR<XOR<BusinessUpdateToOneWithWhereWithoutMembersInput, BusinessUpdateWithoutMembersInput>, BusinessUncheckedUpdateWithoutMembersInput>
   }
 
   export type MerchantCreateNestedOneWithoutLinkedAccountsInput = {
@@ -6534,6 +7888,23 @@ export namespace Prisma {
     not?: NestedIntNullableFilter<$PrismaModel> | number | null
   }
 
+  export type NestedEnumBusinessRoleFilter<$PrismaModel = never> = {
+    equals?: $Enums.BusinessRole | EnumBusinessRoleFieldRefInput<$PrismaModel>
+    in?: $Enums.BusinessRole[] | ListEnumBusinessRoleFieldRefInput<$PrismaModel>
+    notIn?: $Enums.BusinessRole[] | ListEnumBusinessRoleFieldRefInput<$PrismaModel>
+    not?: NestedEnumBusinessRoleFilter<$PrismaModel> | $Enums.BusinessRole
+  }
+
+  export type NestedEnumBusinessRoleWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.BusinessRole | EnumBusinessRoleFieldRefInput<$PrismaModel>
+    in?: $Enums.BusinessRole[] | ListEnumBusinessRoleFieldRefInput<$PrismaModel>
+    notIn?: $Enums.BusinessRole[] | ListEnumBusinessRoleFieldRefInput<$PrismaModel>
+    not?: NestedEnumBusinessRoleWithAggregatesFilter<$PrismaModel> | $Enums.BusinessRole
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumBusinessRoleFilter<$PrismaModel>
+    _max?: NestedEnumBusinessRoleFilter<$PrismaModel>
+  }
+
   export type NestedEnumPaymentProviderFilter<$PrismaModel = never> = {
     equals?: $Enums.PaymentProvider | EnumPaymentProviderFieldRefInput<$PrismaModel>
     in?: $Enums.PaymentProvider[] | ListEnumPaymentProviderFieldRefInput<$PrismaModel>
@@ -6599,6 +7970,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     linkedAccounts?: LinkedAccountCreateNestedManyWithoutBusinessInput
+    members?: BusinessMemberCreateNestedManyWithoutBusinessInput
   }
 
   export type BusinessUncheckedCreateWithoutMerchantInput = {
@@ -6610,6 +7982,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     linkedAccounts?: LinkedAccountUncheckedCreateNestedManyWithoutBusinessInput
+    members?: BusinessMemberUncheckedCreateNestedManyWithoutBusinessInput
   }
 
   export type BusinessCreateOrConnectWithoutMerchantInput = {
@@ -6767,6 +8140,32 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type BusinessMemberCreateWithoutBusinessInput = {
+    id?: string
+    userId: string
+    role?: $Enums.BusinessRole
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type BusinessMemberUncheckedCreateWithoutBusinessInput = {
+    id?: string
+    userId: string
+    role?: $Enums.BusinessRole
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type BusinessMemberCreateOrConnectWithoutBusinessInput = {
+    where: BusinessMemberWhereUniqueInput
+    create: XOR<BusinessMemberCreateWithoutBusinessInput, BusinessMemberUncheckedCreateWithoutBusinessInput>
+  }
+
+  export type BusinessMemberCreateManyBusinessInputEnvelope = {
+    data: BusinessMemberCreateManyBusinessInput | BusinessMemberCreateManyBusinessInput[]
+    skipDuplicates?: boolean
+  }
+
   export type MerchantUpsertWithoutBusinessesInput = {
     update: XOR<MerchantUpdateWithoutBusinessesInput, MerchantUncheckedUpdateWithoutBusinessesInput>
     create: XOR<MerchantCreateWithoutBusinessesInput, MerchantUncheckedCreateWithoutBusinessesInput>
@@ -6814,6 +8213,98 @@ export namespace Prisma {
     data: XOR<LinkedAccountUpdateManyMutationInput, LinkedAccountUncheckedUpdateManyWithoutBusinessInput>
   }
 
+  export type BusinessMemberUpsertWithWhereUniqueWithoutBusinessInput = {
+    where: BusinessMemberWhereUniqueInput
+    update: XOR<BusinessMemberUpdateWithoutBusinessInput, BusinessMemberUncheckedUpdateWithoutBusinessInput>
+    create: XOR<BusinessMemberCreateWithoutBusinessInput, BusinessMemberUncheckedCreateWithoutBusinessInput>
+  }
+
+  export type BusinessMemberUpdateWithWhereUniqueWithoutBusinessInput = {
+    where: BusinessMemberWhereUniqueInput
+    data: XOR<BusinessMemberUpdateWithoutBusinessInput, BusinessMemberUncheckedUpdateWithoutBusinessInput>
+  }
+
+  export type BusinessMemberUpdateManyWithWhereWithoutBusinessInput = {
+    where: BusinessMemberScalarWhereInput
+    data: XOR<BusinessMemberUpdateManyMutationInput, BusinessMemberUncheckedUpdateManyWithoutBusinessInput>
+  }
+
+  export type BusinessMemberScalarWhereInput = {
+    AND?: BusinessMemberScalarWhereInput | BusinessMemberScalarWhereInput[]
+    OR?: BusinessMemberScalarWhereInput[]
+    NOT?: BusinessMemberScalarWhereInput | BusinessMemberScalarWhereInput[]
+    id?: StringFilter<"BusinessMember"> | string
+    businessId?: StringFilter<"BusinessMember"> | string
+    userId?: StringFilter<"BusinessMember"> | string
+    role?: EnumBusinessRoleFilter<"BusinessMember"> | $Enums.BusinessRole
+    createdAt?: DateTimeFilter<"BusinessMember"> | Date | string
+    updatedAt?: DateTimeFilter<"BusinessMember"> | Date | string
+  }
+
+  export type BusinessCreateWithoutMembersInput = {
+    id?: string
+    name: string
+    businessType: string
+    registrationNumber?: string | null
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    merchant: MerchantCreateNestedOneWithoutBusinessesInput
+    linkedAccounts?: LinkedAccountCreateNestedManyWithoutBusinessInput
+  }
+
+  export type BusinessUncheckedCreateWithoutMembersInput = {
+    id?: string
+    merchantId: string
+    name: string
+    businessType: string
+    registrationNumber?: string | null
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    linkedAccounts?: LinkedAccountUncheckedCreateNestedManyWithoutBusinessInput
+  }
+
+  export type BusinessCreateOrConnectWithoutMembersInput = {
+    where: BusinessWhereUniqueInput
+    create: XOR<BusinessCreateWithoutMembersInput, BusinessUncheckedCreateWithoutMembersInput>
+  }
+
+  export type BusinessUpsertWithoutMembersInput = {
+    update: XOR<BusinessUpdateWithoutMembersInput, BusinessUncheckedUpdateWithoutMembersInput>
+    create: XOR<BusinessCreateWithoutMembersInput, BusinessUncheckedCreateWithoutMembersInput>
+    where?: BusinessWhereInput
+  }
+
+  export type BusinessUpdateToOneWithWhereWithoutMembersInput = {
+    where?: BusinessWhereInput
+    data: XOR<BusinessUpdateWithoutMembersInput, BusinessUncheckedUpdateWithoutMembersInput>
+  }
+
+  export type BusinessUpdateWithoutMembersInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    businessType?: StringFieldUpdateOperationsInput | string
+    registrationNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    merchant?: MerchantUpdateOneRequiredWithoutBusinessesNestedInput
+    linkedAccounts?: LinkedAccountUpdateManyWithoutBusinessNestedInput
+  }
+
+  export type BusinessUncheckedUpdateWithoutMembersInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    merchantId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    businessType?: StringFieldUpdateOperationsInput | string
+    registrationNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    linkedAccounts?: LinkedAccountUncheckedUpdateManyWithoutBusinessNestedInput
+  }
+
   export type MerchantCreateWithoutLinkedAccountsInput = {
     id?: string
     name: string
@@ -6848,6 +8339,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     merchant: MerchantCreateNestedOneWithoutBusinessesInput
+    members?: BusinessMemberCreateNestedManyWithoutBusinessInput
   }
 
   export type BusinessUncheckedCreateWithoutLinkedAccountsInput = {
@@ -6859,6 +8351,7 @@ export namespace Prisma {
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
+    members?: BusinessMemberUncheckedCreateNestedManyWithoutBusinessInput
   }
 
   export type BusinessCreateOrConnectWithoutLinkedAccountsInput = {
@@ -6917,6 +8410,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     merchant?: MerchantUpdateOneRequiredWithoutBusinessesNestedInput
+    members?: BusinessMemberUpdateManyWithoutBusinessNestedInput
   }
 
   export type BusinessUncheckedUpdateWithoutLinkedAccountsInput = {
@@ -6928,6 +8422,7 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    members?: BusinessMemberUncheckedUpdateManyWithoutBusinessNestedInput
   }
 
   export type BusinessCreateManyMerchantInput = {
@@ -6959,6 +8454,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     linkedAccounts?: LinkedAccountUpdateManyWithoutBusinessNestedInput
+    members?: BusinessMemberUpdateManyWithoutBusinessNestedInput
   }
 
   export type BusinessUncheckedUpdateWithoutMerchantInput = {
@@ -6970,6 +8466,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     linkedAccounts?: LinkedAccountUncheckedUpdateManyWithoutBusinessNestedInput
+    members?: BusinessMemberUncheckedUpdateManyWithoutBusinessNestedInput
   }
 
   export type BusinessUncheckedUpdateManyWithoutMerchantInput = {
@@ -7022,6 +8519,14 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
+  export type BusinessMemberCreateManyBusinessInput = {
+    id?: string
+    userId: string
+    role?: $Enums.BusinessRole
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
   export type LinkedAccountUpdateWithoutBusinessInput = {
     id?: StringFieldUpdateOperationsInput | string
     provider?: EnumPaymentProviderFieldUpdateOperationsInput | $Enums.PaymentProvider
@@ -7052,6 +8557,30 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type BusinessMemberUpdateWithoutBusinessInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    role?: EnumBusinessRoleFieldUpdateOperationsInput | $Enums.BusinessRole
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BusinessMemberUncheckedUpdateWithoutBusinessInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    role?: EnumBusinessRoleFieldUpdateOperationsInput | $Enums.BusinessRole
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BusinessMemberUncheckedUpdateManyWithoutBusinessInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    role?: EnumBusinessRoleFieldUpdateOperationsInput | $Enums.BusinessRole
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
 
 
   /**
@@ -7073,6 +8602,10 @@ export namespace Prisma {
      * @deprecated Use BusinessDefaultArgs instead
      */
     export type BusinessArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = BusinessDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use BusinessMemberDefaultArgs instead
+     */
+    export type BusinessMemberArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = BusinessMemberDefaultArgs<ExtArgs>
     /**
      * @deprecated Use LinkedAccountDefaultArgs instead
      */
