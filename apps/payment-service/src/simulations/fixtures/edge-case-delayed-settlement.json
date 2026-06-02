@@ -1,0 +1,21 @@
+{
+  "provider": "airtel",
+  "eventType": "payment.pending",
+  "providerReference": "DELAYED-SETTLE-001",
+  "receivedAt": "2026-06-01T10:00:00Z",
+  "payloadJson": {
+    "transactionId": "DELAYED-SETTLE-001",
+    "amount": 750.25,
+    "currency": "USD",
+    "status": "PENDING",
+    "timestamp": "2026-06-01T10:00:00Z",
+    "externalId": "PAYER-DELAYED-001",
+    "description": "Payment with delayed settlement",
+    "settlementExpectedAt": "2026-06-03T10:00:00Z"
+  },
+  "headersJson": {
+    "x-airtel-signature": "valid-signature-delayed",
+    "content-type": "application/json",
+    "x-webhook-id": "webhook-delayed-001"
+  }
+}

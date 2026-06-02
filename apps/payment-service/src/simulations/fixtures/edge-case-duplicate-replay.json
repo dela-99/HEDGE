@@ -1,0 +1,20 @@
+{
+  "provider": "mtn",
+  "eventType": "payment.completed",
+  "providerReference": "DUPLICATE-REPLAY-001",
+  "receivedAt": "2026-06-01T14:00:00Z",
+  "payloadJson": {
+    "transactionId": "DUPLICATE-REPLAY-001",
+    "amount": 500.00,
+    "currency": "USD",
+    "status": "SUCCESSFUL",
+    "timestamp": "2026-06-01T14:00:00Z",
+    "externalId": "PAYER-DUPLICATE-001",
+    "description": "Payment that will be replayed as duplicate"
+  },
+  "headersJson": {
+    "x-mtn-signature": "valid-signature-duplicate",
+    "content-type": "application/json",
+    "x-webhook-id": "webhook-duplicate-001"
+  }
+}

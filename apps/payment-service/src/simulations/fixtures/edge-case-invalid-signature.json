@@ -1,0 +1,20 @@
+{
+  "provider": "vodacom",
+  "eventType": "payment.completed",
+  "providerReference": "INVALID-SIG-001",
+  "receivedAt": "2026-06-01T18:00:00Z",
+  "payloadJson": {
+    "transactionId": "INVALID-SIG-001",
+    "amount": 450.00,
+    "currency": "USD",
+    "status": "SUCCESSFUL",
+    "timestamp": "2026-06-01T18:00:00Z",
+    "externalId": "PAYER-INVALID-SIG",
+    "description": "Payment with invalid signature"
+  },
+  "headersJson": {
+    "x-vodacom-signature": "invalid-tampered-signature-12345678",
+    "content-type": "application/json",
+    "x-webhook-id": "webhook-invalid-sig-001"
+  }
+}

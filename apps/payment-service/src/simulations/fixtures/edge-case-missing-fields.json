@@ -1,0 +1,16 @@
+{
+  "provider": "airtel",
+  "eventType": "payment.completed",
+  "providerReference": "MISSING-FIELDS-001",
+  "receivedAt": "2026-06-01T17:00:00Z",
+  "payloadJson": {
+    "transactionId": "MISSING-FIELDS-001",
+    "amount": 300.00,
+    "status": "SUCCESSFUL",
+    "timestamp": "2026-06-01T17:00:00Z"
+  },
+  "headersJson": {
+    "x-airtel-signature": "valid-signature-missing",
+    "content-type": "application/json"
+  }
+}

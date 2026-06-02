@@ -13,6 +13,7 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:e2e": "jest --config ./test/jest-e2e.json",
+    "edge-case-suite": "ts-node -P tsconfig.json scripts/edge-case-suite.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {
