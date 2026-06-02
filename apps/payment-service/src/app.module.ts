@@ -10,6 +10,7 @@ import { FraudModule } from './fraud/fraud.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { SimulationModule } from './simulations/simulation.module';
 import { MerchantModule } from './merchant/merchant.module';
+import { LinkedAccountsModule } from './linked-accounts/linked-accounts.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { MerchantModule } from './merchant/merchant.module';
     AnalyticsModule,
     SimulationModule,
     MerchantModule,
+    LinkedAccountsModule,
   ],
 })
 export class AppModule {}

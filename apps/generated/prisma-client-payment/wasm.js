@@ -142,6 +142,17 @@ exports.Prisma.BusinessScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.LinkedAccountScalarFieldEnum = {
+  id: 'id',
+  merchantId: 'merchantId',
+  businessId: 'businessId',
+  provider: 'provider',
+  providerAccountId: 'providerAccountId',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.RawFinancialEventScalarFieldEnum = {
   id: 'id',
   provider: 'provider',
@@ -178,11 +189,25 @@ exports.Prisma.JsonNullValueFilter = {
   JsonNull: Prisma.JsonNull,
   AnyNull: Prisma.AnyNull
 };
+exports.PaymentProvider = exports.$Enums.PaymentProvider = {
+  MTN_MOMO: 'MTN_MOMO',
+  AIRTEL: 'AIRTEL',
+  VODAFONE: 'VODAFONE',
+  ORANGE: 'ORANGE',
+  BANK_API: 'BANK_API'
+};
 
+exports.LinkedAccountStatus = exports.$Enums.LinkedAccountStatus = {
+  PENDING: 'PENDING',
+  ACTIVE: 'ACTIVE',
+  INACTIVE: 'INACTIVE',
+  SUSPENDED: 'SUSPENDED'
+};
 
 exports.Prisma.ModelName = {
   Merchant: 'Merchant',
   Business: 'Business',
+  LinkedAccount: 'LinkedAccount',
   RawFinancialEvent: 'RawFinancialEvent'
 };
 

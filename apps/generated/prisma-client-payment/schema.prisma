@@ -15,7 +15,8 @@ model Merchant {
   email    String  @unique
   isActive Boolean @default(true)
 
-  businesses Business[]
+  businesses     Business[]
+  linkedAccounts LinkedAccount[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -28,8 +29,9 @@ model Merchant {
 model Business {
   id String @id @default(uuid())
 
-  merchantId String
-  merchant   Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  merchantId     String
+  merchant       Merchant        @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  linkedAccounts LinkedAccount[]
 
   name               String
   businessType       String
@@ -42,6 +44,45 @@ model Business {
 
   @@index([merchantId])
   @@index([isActive])
+  @@index([createdAt])
+}
+
+enum PaymentProvider {
+  MTN_MOMO
+  AIRTEL
+  VODAFONE
+  ORANGE
+  BANK_API
+}
+
+enum LinkedAccountStatus {
+  PENDING
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+model LinkedAccount {
+  id String @id @default(uuid())
+
+  merchantId String
+  merchant   Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  provider          PaymentProvider
+  providerAccountId String
+  status            LinkedAccountStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([provider, providerAccountId])
+  @@index([merchantId])
+  @@index([businessId])
+  @@index([provider])
+  @@index([status])
   @@index([createdAt])
 }
 
