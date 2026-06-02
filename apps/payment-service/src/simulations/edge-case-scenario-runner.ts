@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import * as fs from 'fs';
 import * as path from 'path';
-import { SimulationService } from './simulation.service';
+import { SimulationService, SimulationResult } from './simulation.service';
 
 /**
  * Scenario definition with expected outcomes for verification.
@@ -254,7 +254,7 @@ export class EdgeCaseScenarioRunner {
    */
   private verifyOutcome(
     scenario: ScenarioDefinition,
-    simulationResult: any,
+    simulationResult: SimulationResult,
   ): boolean {
     const expected = scenario.expectedOutcome;
 
@@ -291,11 +291,11 @@ export class EdgeCaseScenarioRunner {
     if (expected.status === 'failure' && simulationResult.status === 'failure') {
       if (expected.reasonForFailure) {
         const errorMessage = simulationResult.errors.join(' ');
-        return errorMessage.toLowerCase().includes('validation') ||
+        return (
+          errorMessage.toLowerCase().includes('validation') ||
           errorMessage.toLowerCase().includes('missing') ||
           errorMessage.toLowerCase().includes('field')
-          ? true
-          : false;
+        );
       }
       return true;
     }
