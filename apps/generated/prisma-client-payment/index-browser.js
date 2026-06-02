@@ -122,6 +122,26 @@ exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
   Serializable: 'Serializable'
 });
 
+exports.Prisma.MerchantScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  email: 'email',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.BusinessScalarFieldEnum = {
+  id: 'id',
+  merchantId: 'merchantId',
+  name: 'name',
+  businessType: 'businessType',
+  registrationNumber: 'registrationNumber',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.RawFinancialEventScalarFieldEnum = {
   id: 'id',
   provider: 'provider',
@@ -148,6 +168,11 @@ exports.Prisma.QueryMode = {
   insensitive: 'insensitive'
 };
 
+exports.Prisma.NullsOrder = {
+  first: 'first',
+  last: 'last'
+};
+
 exports.Prisma.JsonNullValueFilter = {
   DbNull: Prisma.DbNull,
   JsonNull: Prisma.JsonNull,
@@ -156,6 +181,8 @@ exports.Prisma.JsonNullValueFilter = {
 
 
 exports.Prisma.ModelName = {
+  Merchant: 'Merchant',
+  Business: 'Business',
   RawFinancialEvent: 'RawFinancialEvent'
 };
 
