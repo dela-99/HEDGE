@@ -8,6 +8,7 @@ import { AnalyticsModule } from '../analytics/analytics.module';
 import { SimulationService } from './simulation.service';
 import { SimulationRunnerService } from './simulation-runner.service';
 import { SimulationMetricsService } from './simulation-metrics.service';
+import { TransactionGeneratorService } from './generators/transaction-generator.service';
 
 /**
  * SimulationModule orchestrates the replay of financial event fixtures and generated events through the pipeline.
@@ -24,6 +25,7 @@ import { SimulationMetricsService } from './simulation-metrics.service';
  * - SimulationService: Service for fixture-based simulation
  * - SimulationRunnerService: Service for replaying generated events through the full pipeline
  * - SimulationMetricsService: Service for collecting and exporting simulation metrics
+ * - TransactionGeneratorService: Service for generating realistic transaction fixtures
  */
 @Module({
   imports: [
@@ -34,7 +36,7 @@ import { SimulationMetricsService } from './simulation-metrics.service';
     ReconciliationModule,
     AnalyticsModule,
   ],
-  providers: [SimulationService, SimulationRunnerService, SimulationMetricsService],
-  exports: [SimulationService, SimulationRunnerService, SimulationMetricsService],
+  providers: [SimulationService, SimulationRunnerService, SimulationMetricsService, TransactionGeneratorService],
+  exports: [SimulationService, SimulationRunnerService, SimulationMetricsService, TransactionGeneratorService],
 })
 export class SimulationModule {}
