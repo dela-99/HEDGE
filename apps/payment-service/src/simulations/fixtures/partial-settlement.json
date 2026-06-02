@@ -1,0 +1,19 @@
+{
+  "provider": "mtn",
+  "eventType": "payment.partial_settled",
+  "providerReference": "MTN-2026-06-01-PARTIAL-001",
+  "receivedAt": "2026-06-01T17:00:00Z",
+  "payloadJson": {
+    "transactionId": "MTN-2026-06-01-PARTIAL-001",
+    "amount": 750.25,
+    "currency": "USD",
+    "status": "PENDING",
+    "timestamp": "2026-06-01T17:00:00Z",
+    "externalId": "PAYER-234567",
+    "description": "Partial settlement - 750.25 of 1500.50 requested"
+  },
+  "headersJson": {
+    "x-mtn-signature": "mock-signature-partial",
+    "content-type": "application/json"
+  }
+}

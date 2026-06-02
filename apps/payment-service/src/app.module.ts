@@ -8,6 +8,7 @@ import { NormalizationModule } from './normalization/normalization.module';
 import { ReconciliationModule } from './reconciliation/reconciliation.module';
 import { FraudModule } from './fraud/fraud.module';
 import { AnalyticsModule } from './analytics/analytics.module';
+import { SimulationModule } from './simulations/simulation.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { AnalyticsModule } from './analytics/analytics.module';
     ReconciliationModule,
     FraudModule,
     AnalyticsModule,
+    SimulationModule,
   ],
 })
 export class AppModule {}
