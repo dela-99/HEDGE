@@ -13,6 +13,7 @@ import { MerchantModule } from './merchant/merchant.module';
 import { LinkedAccountsModule } from './linked-accounts/linked-accounts.module';
 import { TeamModule } from './team/team.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { BusinessModule } from './business/business.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
     AnalyticsModule,
     SimulationModule,
     MerchantModule,
+    BusinessModule,
     LinkedAccountsModule,
     TeamModule,
     DashboardModule,
