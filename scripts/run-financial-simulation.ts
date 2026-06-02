@@ -1,10 +1,10 @@
 import { NestFactory } from '@nestjs/core';
 import * as fs from 'fs';
 import * as path from 'path';
-import { AppModule } from '../src/app.module';
-import { SimulationRunnerService } from '../src/simulations/simulation-runner.service';
-import { SimulationMetricsService } from '../src/simulations/simulation-metrics.service';
-import { TransactionGeneratorService } from '../src/simulations/generators/transaction-generator.service';
+import { AppModule } from '../apps/payment-service/src/app.module';
+import { SimulationRunnerService } from '../apps/payment-service/src/simulations/simulation-runner.service';
+import { SimulationMetricsService } from '../apps/payment-service/src/simulations/simulation-metrics.service';
+import { TransactionGeneratorService } from '../apps/payment-service/src/simulations/generators/transaction-generator.service';
 
 /**
  * Financial Simulation Command

@@ -17,8 +17,8 @@ export declare class RawEventsService {
         provider: string;
         eventType: string;
         providerReference: string;
-        headersJson: import("apps/generated/prisma-client-payment/runtime/library").JsonValue;
-        payloadJson: import("apps/generated/prisma-client-payment/runtime/library").JsonValue;
+        headersJson: import("../../../generated/prisma-client-payment/runtime/library").JsonValue;
+        payloadJson: import("../../../generated/prisma-client-payment/runtime/library").JsonValue;
         receivedAt: Date;
         verificationStatus: string;
     }>;
@@ -28,8 +28,8 @@ export declare class RawEventsService {
         provider: string;
         eventType: string;
         providerReference: string;
-        headersJson: import("apps/generated/prisma-client-payment/runtime/library").JsonValue;
-        payloadJson: import("apps/generated/prisma-client-payment/runtime/library").JsonValue;
+        headersJson: import("../../../generated/prisma-client-payment/runtime/library").JsonValue;
+        payloadJson: import("../../../generated/prisma-client-payment/runtime/library").JsonValue;
         receivedAt: Date;
         verificationStatus: string;
     }[]>;

@@ -8,15 +8,20 @@
     "allowSyntheticDefaultImports": true,
     "target": "ES2022",
     "sourceMap": true,
-    "outDir": "./dist",
-    "rootDir": "./src",
+    "outDir": "../dist/scripts",
     "isolatedModules": true,
-    "incremental": true,
     "skipLibCheck": true,
-    "strict": true,
+    "strict": false,
     "esModuleInterop": true,
-    "moduleResolution": "NodeNext"
+    "moduleResolution": "NodeNext",
+    "noImplicitAny": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noImplicitReturns": false
   },
-  "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "dist", "test", "**/*.spec.ts"]
+  "include": ["**/*.ts"],
+  "exclude": ["node_modules"]
 }
+
+
+

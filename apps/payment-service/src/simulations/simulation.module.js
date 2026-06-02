@@ -17,6 +17,7 @@ const analytics_module_1 = require("../analytics/analytics.module");
 const simulation_service_1 = require("./simulation.service");
 const simulation_runner_service_1 = require("./simulation-runner.service");
 const simulation_metrics_service_1 = require("./simulation-metrics.service");
+const transaction_generator_service_1 = require("./generators/transaction-generator.service");
 let SimulationModule = class SimulationModule {
 };
 exports.SimulationModule = SimulationModule;
@@ -30,8 +31,8 @@ exports.SimulationModule = SimulationModule = __decorate([
             reconciliation_module_1.ReconciliationModule,
             analytics_module_1.AnalyticsModule,
         ],
-        providers: [simulation_service_1.SimulationService, simulation_runner_service_1.SimulationRunnerService, simulation_metrics_service_1.SimulationMetricsService],
-        exports: [simulation_service_1.SimulationService, simulation_runner_service_1.SimulationRunnerService, simulation_metrics_service_1.SimulationMetricsService],
+        providers: [simulation_service_1.SimulationService, simulation_runner_service_1.SimulationRunnerService, simulation_metrics_service_1.SimulationMetricsService, transaction_generator_service_1.TransactionGeneratorService],
+        exports: [simulation_service_1.SimulationService, simulation_runner_service_1.SimulationRunnerService, simulation_metrics_service_1.SimulationMetricsService, transaction_generator_service_1.TransactionGeneratorService],
     })
 ], SimulationModule);
 //# sourceMappingURL=simulation.module.js.map
