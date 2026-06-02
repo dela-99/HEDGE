@@ -9,6 +9,7 @@ import { ReconciliationModule } from './reconciliation/reconciliation.module';
 import { FraudModule } from './fraud/fraud.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { SimulationModule } from './simulations/simulation.module';
+import { MerchantModule } from './merchant/merchant.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { SimulationModule } from './simulations/simulation.module';
     FraudModule,
     AnalyticsModule,
     SimulationModule,
+    MerchantModule,
   ],
 })
 export class AppModule {}

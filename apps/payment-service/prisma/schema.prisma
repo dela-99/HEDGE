@@ -8,6 +8,43 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Merchant {
+  id                   String    @id @default(uuid())
+  
+  name                 String
+  email                String    @unique
+  isActive             Boolean   @default(true)
+  
+  businesses           Business[]
+  
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  
+  @@index([email])
+  @@index([isActive])
+  @@index([createdAt])
+}
+
+model Business {
+  id                   String    @id @default(uuid())
+  
+  merchantId           String
+  merchant             Merchant  @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  
+  name                 String
+  businessType         String
+  registrationNumber   String?
+  
+  isActive             Boolean   @default(true)
+  
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  
+  @@index([merchantId])
+  @@index([isActive])
+  @@index([createdAt])
+}
+
 model RawFinancialEvent {
   id                   String    @id @default(uuid())
   
