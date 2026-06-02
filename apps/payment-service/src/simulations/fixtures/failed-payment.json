@@ -1,0 +1,19 @@
+{
+  "provider": "mtn",
+  "eventType": "payment.failed",
+  "providerReference": "MTN-2026-06-01-FAILED-001",
+  "receivedAt": "2026-06-01T13:00:00Z",
+  "payloadJson": {
+    "transactionId": "MTN-2026-06-01-FAILED-001",
+    "amount": 2500.00,
+    "currency": "USD",
+    "status": "FAILED",
+    "timestamp": "2026-06-01T13:00:00Z",
+    "externalId": "PAYER-789012",
+    "description": "Failed payment - insufficient funds"
+  },
+  "headersJson": {
+    "x-mtn-signature": "mock-signature-failed",
+    "content-type": "application/json"
+  }
+}

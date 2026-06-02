@@ -1,0 +1,19 @@
+{
+  "provider": "mtn",
+  "eventType": "payment.completed",
+  "providerReference": "MTN-2026-06-01-DUPLICATE-001",
+  "receivedAt": "2026-06-01T14:00:00Z",
+  "payloadJson": {
+    "transactionId": "MTN-2026-06-01-DUPLICATE-001",
+    "amount": 500.00,
+    "currency": "USD",
+    "status": "SUCCESSFUL",
+    "timestamp": "2026-06-01T14:00:00Z",
+    "externalId": "PAYER-345678",
+    "description": "Duplicate payment - same transaction submitted twice"
+  },
+  "headersJson": {
+    "x-mtn-signature": "mock-signature-duplicate",
+    "content-type": "application/json"
+  }
+}

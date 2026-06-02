@@ -1,0 +1,20 @@
+{
+  "provider": "mtn",
+  "eventType": "payment.completed",
+  "providerReference": "MTN-2026-05-20-DELAYED-001",
+  "receivedAt": "2026-06-01T16:00:00Z",
+  "payloadJson": {
+    "transactionId": "MTN-2026-05-20-DELAYED-001",
+    "amount": 1500.75,
+    "currency": "USD",
+    "status": "SUCCESSFUL",
+    "timestamp": "2026-05-20T08:00:00Z",
+    "requestTimestamp": "2026-05-20T08:00:00Z",
+    "externalId": "PAYER-901234",
+    "description": "Delayed payment - transaction from 12 days ago"
+  },
+  "headersJson": {
+    "x-mtn-signature": "mock-signature-delayed",
+    "content-type": "application/json"
+  }
+}

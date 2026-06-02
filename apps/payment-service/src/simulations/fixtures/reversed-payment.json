@@ -1,0 +1,19 @@
+{
+  "provider": "mtn",
+  "eventType": "payment.reversed",
+  "providerReference": "MTN-2026-06-01-REVERSED-001",
+  "receivedAt": "2026-06-01T15:00:00Z",
+  "payloadJson": {
+    "transactionId": "MTN-2026-06-01-REVERSED-001",
+    "amount": 0,
+    "currency": "USD",
+    "status": "SUCCESSFUL",
+    "timestamp": "2026-06-01T15:00:00Z",
+    "externalId": "PAYER-567890",
+    "description": "Payment reversal - original transaction MTN-2026-06-01-SUCCESS-001"
+  },
+  "headersJson": {
+    "x-mtn-signature": "mock-signature-reversed",
+    "content-type": "application/json"
+  }
+}
