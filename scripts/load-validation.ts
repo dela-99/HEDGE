@@ -137,13 +137,18 @@ async function runLoadValidation(): Promise<void> {
 
     // Display final status
     const elapsedTime = Date.now() - startTime;
+    const elapsedTimeStr = `${elapsedTime}ms`;
+    const boxWidth = 60; // Total width of the box
+    const contentWidth = boxWidth - 8; // Account for "║ " and " ║"
+    const padding = Math.max(0, contentWidth - (`Total execution time: ${elapsedTimeStr}`).length);
+    
     console.log('╔════════════════════════════════════════════════════════╗');
     if (report.overallStatus === 'GO') {
       console.log('║          ✅ Load Validation PASSED - GO GATE ✅        ║');
     } else {
       console.log('║       ❌ Load Validation FAILED - NO-GO GATE ❌        ║');
     }
-    console.log(`║  Total execution time: ${elapsedTime}ms${' '.repeat(Math.max(0, 30 - elapsedTime.toString().length))}║`);
+    console.log(`║  Total execution time: ${elapsedTimeStr}${' '.repeat(padding)}║`);
     console.log('╚════════════════════════════════════════════════════════╝\n');
 
     // Exit with appropriate code
