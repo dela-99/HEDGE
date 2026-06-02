@@ -10,6 +10,7 @@ import { SimulationRunnerService } from './simulation-runner.service';
 import { SimulationMetricsService } from './simulation-metrics.service';
 import { TransactionGeneratorService } from './generators/transaction-generator.service';
 import { EdgeCaseScenarioRunner } from './edge-case-scenario-runner';
+import { LoadValidationService } from './load-validation.service';
 
 /**
  * SimulationModule orchestrates the replay of financial event fixtures and generated events through the pipeline.
@@ -28,6 +29,7 @@ import { EdgeCaseScenarioRunner } from './edge-case-scenario-runner';
  * - SimulationMetricsService: Service for collecting and exporting simulation metrics
  * - TransactionGeneratorService: Service for generating realistic transaction fixtures
  * - EdgeCaseScenarioRunner: Service for executing edge-case scenarios and generating reports
+ * - LoadValidationService: Service for comprehensive load validation and gate criteria checking
  */
 @Module({
   imports: [
@@ -38,7 +40,7 @@ import { EdgeCaseScenarioRunner } from './edge-case-scenario-runner';
     ReconciliationModule,
     AnalyticsModule,
   ],
-  providers: [SimulationService, SimulationRunnerService, SimulationMetricsService, TransactionGeneratorService, EdgeCaseScenarioRunner],
-  exports: [SimulationService, SimulationRunnerService, SimulationMetricsService, TransactionGeneratorService, EdgeCaseScenarioRunner],
+  providers: [SimulationService, SimulationRunnerService, SimulationMetricsService, TransactionGeneratorService, EdgeCaseScenarioRunner, LoadValidationService],
+  exports: [SimulationService, SimulationRunnerService, SimulationMetricsService, TransactionGeneratorService, EdgeCaseScenarioRunner, LoadValidationService],
 })
 export class SimulationModule {}

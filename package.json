@@ -6,6 +6,7 @@
     "build": "npm run prisma:generate --workspace apps/auth-service && npm run prisma:generate --workspace apps/payment-service && npm run build --workspace apps/auth-service && npm run build --workspace apps/payment-service && npm run build:scripts",
     "build:scripts": "cd scripts && tsc",
     "simulate": "npm run build && node dist/scripts/run-financial-simulation.js",
+    "load-validation": "npm run build && node dist/scripts/load-validation.js",
     "start:dev": "npm run start:dev --workspace apps/auth-service",
     "test": "npm run test --workspace apps/auth-service --if-present && npm run test --workspace apps/payment-service --if-present"
   },
