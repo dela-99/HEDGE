@@ -323,7 +323,7 @@ jobs:
       
       - name: Run load validation
         env:
-          DATABASE_URL: ******localhost:5432/payment_db
+          DATABASE_URL: "******localhost:5432/payment_db"
         run: npm run load-validation
       
       - name: Upload report
